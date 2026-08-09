@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { WorldWorkspace } from './world/WorldWorkspace.js';
 
 const WORKSPACES = ['WORLD', 'STORY', 'STUDIO', 'CUT'] as const;
 type Workspace = (typeof WORKSPACES)[number];
@@ -32,9 +33,15 @@ export function App() {
         </nav>
       </header>
       <main className="stage">
-        <h1>{active}</h1>
-        <p>{DESCRIPTIONS[active]}</p>
-        <p className="hint">Phase 0 shell — vault foundation lands in Phase 1.</p>
+        {active === 'WORLD' ? (
+          <WorldWorkspace />
+        ) : (
+          <div className="placeholder">
+            <h1>{active}</h1>
+            <p>{DESCRIPTIONS[active]}</p>
+            <p className="hint">Arrives in a later phase — see ROADMAP.md.</p>
+          </div>
+        )}
       </main>
     </div>
   );

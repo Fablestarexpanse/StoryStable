@@ -1,0 +1,11 @@
+{
+  "name": "@storystable/vault",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pure domain layer for the Markdown vault: frontmatter, wikilinks, backlinks. No filesystem access.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "yaml": "^2.8.2"
+  }
+}

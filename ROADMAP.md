@@ -48,16 +48,16 @@ Notes
 
 ## Phase 1 — Vault Foundation
 
-Status: NOT STARTED
-Owner: unassigned
+Status: IN PROGRESS
+Owner: agent
 
 Acceptance criteria
 
-- [ ] Project create/open
-- [ ] Markdown editor (CodeMirror 6)
-- [ ] YAML frontmatter parse/validate/edit
-- [ ] Wikilinks
-- [ ] Backlinks and unlinked mentions
+- [x] Project create/open (spec §3 layout, atomic writes, path-safety guard)
+- [ ] Markdown editor (CodeMirror 6) — current viewer is read-only
+- [x] YAML frontmatter parse (never-throwing) — validate/edit UI pending
+- [x] Wikilinks (targets, aliases, headings, embeds; code blocks excluded)
+- [x] Backlinks — unlinked mentions pending
 - [ ] Full-text search (SQLite FTS5)
 - [ ] File watcher with incremental indexing
 - [ ] SQLite index build and rebuild-from-files
@@ -65,6 +65,15 @@ Acceptance criteria
 - [ ] Canvas (JSON Canvas compatible)
 - [ ] Attachments
 - [ ] Project Health panel
+
+Notes
+
+- 2026-08-09: first increment landed. `packages/vault` is the pure domain
+  layer (no filesystem access); Rust owns project layout, path safety, and
+  atomic IO behind five Tauri commands; WORLD workspace has project
+  open/create, note list, viewer, properties, links, and backlinks.
+  Link resolution currently rebuilds in-memory on load/refresh — the SQLite
+  index replaces that in the next increment.
 
 ---
 

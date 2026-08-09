@@ -11,6 +11,15 @@ and agent definition versions.
 
 ### Added
 
+- Phase 1 (first increment): `packages/vault` domain layer — never-throwing
+  YAML frontmatter parsing, wikilink extraction (aliases, headings, embeds,
+  code-block exclusion), case-insensitive link resolution, backlink index.
+- Rust vault services: project create/open with the spec §3 folder layout,
+  path-safety guard against root escape, atomic writes (temp → flush →
+  rename), note list/read/write Tauri commands.
+- WORLD workspace: project open/create panel, note navigator, note viewer,
+  properties/links/backlinks inspector.
+
 - Phase 0 repository scaffold: npm workspaces, Cargo workspace, strict
   TypeScript, Prettier, ESLint flat config, Vitest.
 - `packages/schemas`: JSON Schema 2020-12 contracts for the production object

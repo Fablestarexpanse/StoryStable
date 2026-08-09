@@ -1,4 +1,8 @@
 {
   "files": [],
-  "references": [{ "path": "packages/schemas" }, { "path": "apps/desktop" }]
+  "references": [
+    { "path": "packages/schemas" },
+    { "path": "packages/vault" },
+    { "path": "apps/desktop" }
+  ]
 }
