@@ -1,0 +1,63 @@
+{
+  "$schema_id": "urn:storystable:shot",
+  "data": {
+    "schema_version": 1,
+    "id": "shot_014_020",
+    "type": "shot",
+    "scene_id": "scene_014",
+    "moment_id": "moment_014_02",
+    "order": 20,
+    "status": "board_approved",
+    "purpose": "Lan realizes the structure is reacting specifically to him.",
+    "duration": {
+      "target_seconds": 8.0,
+      "target_frames": 192,
+      "rate": { "numerator": 24, "denominator": 1 },
+      "hard_max_seconds": null
+    },
+    "composition": {
+      "shot_size": "medium_close_up",
+      "angle": "eye_level",
+      "aspect_ratio": "16:9",
+      "lens_mm": null
+    },
+    "camera": {
+      "movement": "push_in",
+      "amplitude": "small",
+      "speed": "slow",
+      "stabilization": "controlled",
+      "notes": "No handheld shake."
+    },
+    "performances": [
+      {
+        "character_id": "char_lan",
+        "intention": "Hide fear; keep watching.",
+        "action_beats": [
+          "notices structural movement",
+          "freezes briefly",
+          "eyes shift to instruments"
+        ],
+        "expression": "restrained",
+        "body_language": "closed",
+        "eyeline": "Fablestar, then instruments",
+        "blocking": "seated at forward console",
+        "voice_delivery": "none",
+        "continuity_notes": "Left glove remains damaged."
+      }
+    ],
+    "visual": {
+      "environment_id": "loc_ship_cockpit",
+      "lighting": "existing cockpit lighting",
+      "continuity_notes": []
+    },
+    "dialogue": [],
+    "sound": {
+      "ambience": ["low ship machinery"],
+      "sfx": ["distant structural groan", "single warning tone"],
+      "music": { "mode": "none" }
+    },
+    "keyframes": { "first_frame_asset_id": null, "last_frame_asset_id": null },
+    "reference_set_id": "refset_shot_014_020",
+    "renderer": { "preferred": "minimax_h3", "mode_hint": "auto", "profile": "production" }
+  }
+}

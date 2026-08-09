@@ -1,0 +1,29 @@
+{
+  "$schema_id": "urn:storystable:agent-patch",
+  "data": {
+    "schema_version": 1,
+    "id": "patch_canon_20260809_001",
+    "type": "agent_patch",
+    "agent_id": "canon_keeper",
+    "model_route": "local_first",
+    "targets": [
+      {
+        "path": "World/Characters/Lan.md",
+        "before_hash": "sha256:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
+      }
+    ],
+    "changes": {
+      "format": "unified_diff",
+      "payload": "--- a/World/Characters/Lan.md\n+++ b/World/Characters/Lan.md\n"
+    },
+    "rationale": "Record damaged left glove as persistent continuity state.",
+    "checks": {
+      "schema_validation": "passed",
+      "link_validation": "passed",
+      "continuity_check": "passed",
+      "tests": "not_applicable"
+    },
+    "docs_impact": "none",
+    "status": "proposed"
+  }
+}

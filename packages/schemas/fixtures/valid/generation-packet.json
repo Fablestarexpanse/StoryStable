@@ -1,0 +1,36 @@
+{
+  "$schema_id": "urn:storystable:generation-packet",
+  "data": {
+    "schema_version": 1,
+    "id": "genpkt_014_020_v003",
+    "type": "generation_packet",
+    "shot_id": "shot_014_020",
+    "created_at": "2026-08-09T13:00:00-07:00",
+    "source_revision_hash": "sha256:a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90",
+    "compiler": { "id": "h3_director", "version": "0.1.0" },
+    "renderer": {
+      "id": "minimax_h3",
+      "adapter_version": "0.1.0",
+      "mode": "ref2va",
+      "model_family": "ref2va"
+    },
+    "workflow": {
+      "adapter_id": "comfy_h3_ref2va",
+      "adapter_version": "0.1.0",
+      "workflow_hash": "sha256:0f1e2d3c4b5a69788766554433221100ffeeddccbbaa99887766554433221100"
+    },
+    "requested": { "duration_seconds": 8.0, "aspect_ratio": "16:9" },
+    "effective": { "frames": 192, "duration_seconds": 8.0, "width": 1344, "height": 768 },
+    "references": {
+      "pictures": [
+        { "tag": "<Picture 1>", "asset_id": "img_lan_identity_04", "roles": ["identity"] }
+      ],
+      "videos": [
+        { "tag": "<Video 1>", "asset_id": "vid_camera_push_02", "roles": ["camera_motion"] }
+      ],
+      "audios": [{ "tag": "<Audio 1>", "asset_id": "wav_lan_voice_master", "roles": ["voice"] }]
+    },
+    "compiled_prompt": "compiled prompt text",
+    "settings": {}
+  }
+}

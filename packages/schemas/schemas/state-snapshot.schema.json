@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:state-snapshot",
+  "title": "StateSnapshot",
+  "description": "What is physically true and what specific observers know at a story point. World truth, character knowledge, and audience knowledge are never collapsed into one field.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "state_snapshot" },
+    "story_position": {
+      "type": "object",
+      "properties": {
+        "scene_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+        "phase": { "type": "string", "enum": ["start", "mid", "end"] }
+      },
+      "required": ["scene_id", "phase"],
+      "additionalProperties": false
+    },
+    "world_state": {
+      "type": "object",
+      "description": "Objective physical truth, keyed by entity ID.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["string", "number", "boolean", "null"]
+        }
+      }
+    },
+    "knowledge": {
+      "type": "object",
+      "description": "Observer knowledge, keyed by character entity ID or the literal key 'audience'.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["string", "number", "boolean", "null"]
+        }
+      }
+    }
+  },
+  "required": ["schema_version", "id", "type", "story_position", "world_state", "knowledge"],
+  "additionalProperties": false
+}

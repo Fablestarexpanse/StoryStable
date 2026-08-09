@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:take",
+  "title": "Take",
+  "description": "A rendered result with lineage, review decision, and QC flags. Approval never destroys rejected/previous takes.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "take" },
+    "shot_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "generation_packet_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "render_job_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "status": { "$ref": "urn:storystable:common#/$defs/takeDecision" },
+    "files": {
+      "type": "object",
+      "properties": {
+        "video": {
+          "anyOf": [{ "$ref": "urn:storystable:common#/$defs/relativePath" }, { "type": "null" }]
+        },
+        "audio": {
+          "anyOf": [{ "$ref": "urn:storystable:common#/$defs/relativePath" }, { "type": "null" }]
+        },
+        "thumbnail": {
+          "anyOf": [{ "$ref": "urn:storystable:common#/$defs/relativePath" }, { "type": "null" }]
+        }
+      },
+      "additionalProperties": false
+    },
+    "lineage": {
+      "type": "object",
+      "properties": {
+        "parent_take_id": {
+          "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+        },
+        "continuation_of_take_id": {
+          "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+        }
+      },
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "rating": {
+          "anyOf": [{ "type": "integer", "minimum": 1, "maximum": 5 }, { "type": "null" }]
+        },
+        "decision": { "$ref": "urn:storystable:common#/$defs/takeDecision" },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "at_seconds": { "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }] },
+              "text": { "type": "string", "minLength": 1 }
+            },
+            "required": ["text"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "qc": {
+      "type": "object",
+      "properties": {
+        "duration_ok": { "type": "boolean" },
+        "resolution_ok": { "type": "boolean" },
+        "audio_present": { "type": "boolean" },
+        "identity_review": { "type": "string", "enum": ["pending", "passed", "flagged"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "type",
+    "shot_id",
+    "generation_packet_id",
+    "render_job_id",
+    "status",
+    "files"
+  ],
+  "additionalProperties": false
+}

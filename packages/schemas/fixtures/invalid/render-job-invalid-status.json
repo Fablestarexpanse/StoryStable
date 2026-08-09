@@ -1,0 +1,15 @@
+{
+  "$schema_id": "urn:storystable:render-job",
+  "data": {
+    "schema_version": 1,
+    "id": "renderjob_bad_status",
+    "type": "render_job",
+    "generation_packet_id": "genpkt_014_020_v003",
+    "backend": "comfyui",
+    "backend_job_id": null,
+    "status": "paused",
+    "progress": { "node_id": null, "value": 0, "max": 0 },
+    "cancel_requested": false,
+    "error": null
+  }
+}

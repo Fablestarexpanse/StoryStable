@@ -1,0 +1,31 @@
+{
+  "$schema_id": "urn:storystable:board-panel",
+  "data": {
+    "schema_version": 1,
+    "id": "board_014_02_b",
+    "type": "board_panel",
+    "scene_id": "scene_014",
+    "moment_id": "moment_014_02",
+    "shot_id": null,
+    "order": 20,
+    "status": "approved",
+    "image_asset_id": "img_board_014_02_b",
+    "duration": { "frames": 72, "rate": { "numerator": 24, "denominator": 1 } },
+    "captions": {
+      "dialogue": "",
+      "action": "Lan sees the response before the instruments confirm it.",
+      "slugging": "hold, then slow push",
+      "notes": "Preserve cockpit window damage."
+    },
+    "camera_plan": {
+      "enabled": true,
+      "start": { "x": 0.0, "y": 0.0, "scale": 1.0, "rotation_degrees": 0.0 },
+      "end": { "x": 0.0, "y": 0.0, "scale": 1.12, "rotation_degrees": 0.0 },
+      "easing": "ease_in_out",
+      "notes": "Slow push; no handheld movement."
+    },
+    "annotations": [],
+    "audio_asset_ids": [],
+    "reference_set_id": null
+  }
+}

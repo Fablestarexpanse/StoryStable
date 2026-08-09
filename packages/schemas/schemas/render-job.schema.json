@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:render-job",
+  "title": "RenderJob",
+  "description": "Backend render job. Allowed states: created -> queued -> running -> succeeded | failed | cancelled | interrupted. Transitions are validated in code.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "render_job" },
+    "generation_packet_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "backend": { "type": "string", "minLength": 1 },
+    "backend_job_id": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+    "status": { "$ref": "urn:storystable:common#/$defs/renderJobStatus" },
+    "progress": {
+      "type": "object",
+      "properties": {
+        "node_id": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "value": { "type": "number", "minimum": 0 },
+        "max": { "type": "number", "minimum": 0 }
+      },
+      "required": ["value", "max"],
+      "additionalProperties": false
+    },
+    "queued_at": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/isoDateTime" }, { "type": "null" }]
+    },
+    "started_at": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/isoDateTime" }, { "type": "null" }]
+    },
+    "finished_at": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/isoDateTime" }, { "type": "null" }]
+    },
+    "cancel_requested": { "type": "boolean" },
+    "error": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "type",
+    "generation_packet_id",
+    "backend",
+    "status",
+    "progress",
+    "cancel_requested"
+  ],
+  "additionalProperties": false
+}

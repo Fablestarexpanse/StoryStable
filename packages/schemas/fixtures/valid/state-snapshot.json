@@ -1,0 +1,17 @@
+{
+  "$schema_id": "urn:storystable:state-snapshot",
+  "data": {
+    "schema_version": 1,
+    "id": "state_scene_014_end",
+    "type": "state_snapshot",
+    "story_position": { "scene_id": "scene_014", "phase": "end" },
+    "world_state": {
+      "char_lan": { "left_hand": "burned", "coat": "torn" },
+      "ship_01": { "port_viewport": "cracked", "reactor_percent": 71 }
+    },
+    "knowledge": {
+      "char_lan": { "fablestar_recognizes_him": true, "builders_identity": "unknown" },
+      "audience": { "fablestar_recognizes_lan": true, "builders_identity": "unknown" }
+    }
+  }
+}

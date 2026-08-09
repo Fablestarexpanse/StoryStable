@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:reference-set",
+  "title": "ReferenceSet",
+  "description": "Ordered reference entries with semantic role, authority (bindingness), and use_scope (which traits transfer). Authority and use scope are independent axes — see ADR-0001.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "reference_set" },
+    "title": { "type": "string", "minLength": 1 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "asset_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+          "role": { "$ref": "urn:storystable:common#/$defs/referenceRole" },
+          "authority": { "$ref": "urn:storystable:common#/$defs/referenceAuthority" },
+          "use_scope": { "$ref": "urn:storystable:common#/$defs/useScope" },
+          "target_entity_id": {
+            "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+          },
+          "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "exclude_traits": { "type": "array", "items": { "type": "string" } },
+          "notes": { "type": "string" }
+        },
+        "required": ["asset_id", "role", "authority"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["schema_version", "id", "type", "title", "entries"],
+  "additionalProperties": false
+}

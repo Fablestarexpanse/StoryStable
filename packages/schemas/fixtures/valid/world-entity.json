@@ -1,0 +1,16 @@
+{
+  "$schema_id": "urn:storystable:world-entity",
+  "data": {
+    "schema_version": 1,
+    "id": "char_lan",
+    "type": "world_entity",
+    "entity_type": "character",
+    "title": "Lan",
+    "status": "canon",
+    "canon_level": "locked",
+    "aliases": [],
+    "tags": ["conduit", "protagonist"],
+    "relationships": [{ "target_id": "char_mira", "relation": "ally", "status": "current" }],
+    "first_appearance": "scene_001"
+  }
+}

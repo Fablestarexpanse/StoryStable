@@ -1,0 +1,25 @@
+{
+  "$schema_id": "urn:storystable:scene",
+  "data": {
+    "schema_version": 1,
+    "id": "scene_014",
+    "type": "scene",
+    "title": "First Recognition",
+    "sequence_id": "seq_01",
+    "order": 14,
+    "status": "drafting",
+    "location_ids": ["loc_outer_ring"],
+    "character_ids": ["char_lan"],
+    "intent": "Lan realizes physical Fablestar recognizes him.",
+    "start_state_id": "state_scene_014_start",
+    "end_state_id": "state_scene_014_end",
+    "emotional_arc": { "from": "confidence", "through": "recognition", "to": "suppressed_fear" },
+    "protected_information": ["builders_identity"],
+    "reveals": {
+      "audience": ["fablestar_recognizes_lan"],
+      "characters": { "char_lan": ["fablestar_recognizes_him"] }
+    },
+    "moment_ids": ["moment_014_01", "moment_014_02"],
+    "branch_of": null
+  }
+}

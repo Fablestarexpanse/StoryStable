@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:common",
+  "title": "Common definitions",
+  "description": "Shared definitions reused across the StoryStable production object model.",
+  "$defs": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Version of the object's schema, bumped by explicit migration."
+    },
+    "objectId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "description": "Stable machine ID. Never derived from filenames."
+    },
+    "isoDateTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp with offset."
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9.]{3,64}$",
+      "description": "SHA-256 content hash, prefixed."
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!\\.\\.)(?!.*\\.\\./).*$",
+      "description": "Path relative to the project root. Must not escape it."
+    },
+    "rational": {
+      "type": "object",
+      "description": "Exact rational number, used for frame rates and timebases.",
+      "properties": {
+        "numerator": { "type": "integer", "minimum": 1 },
+        "denominator": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["numerator", "denominator"],
+      "additionalProperties": false
+    },
+    "frameDuration": {
+      "type": "object",
+      "description": "Exact frame-aware duration.",
+      "properties": {
+        "frames": { "type": "integer", "minimum": 1 },
+        "rate": { "$ref": "urn:storystable:common#/$defs/rational" }
+      },
+      "required": ["frames", "rate"],
+      "additionalProperties": false
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "referenceRole": {
+      "type": "string",
+      "enum": [
+        "identity",
+        "body",
+        "costume",
+        "prop",
+        "environment",
+        "style",
+        "composition",
+        "first_frame",
+        "last_frame",
+        "motion",
+        "camera_motion",
+        "expression",
+        "pose",
+        "voice",
+        "music_style",
+        "sound_reference"
+      ]
+    },
+    "referenceAuthority": {
+      "type": "string",
+      "description": "How binding a reference is. Trait selection lives in useScope (ADR-0001).",
+      "enum": ["locked", "strong", "guidance", "inspiration"]
+    },
+    "useScope": {
+      "type": "string",
+      "description": "Which traits of the reference transfer (ADR-0001).",
+      "enum": [
+        "full",
+        "identity_only",
+        "appearance_only",
+        "motion_only",
+        "camera_only",
+        "voice_only",
+        "style_only",
+        "composition_only",
+        "audio_only"
+      ]
+    },
+    "takeDecision": {
+      "type": "string",
+      "enum": ["rejected", "hold", "candidate", "approved", "final"]
+    },
+    "renderJobStatus": {
+      "type": "string",
+      "enum": ["created", "queued", "running", "succeeded", "failed", "cancelled", "interrupted"]
+    }
+  }
+}

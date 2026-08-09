@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:agent-patch",
+  "title": "AgentPatch",
+  "description": "A reviewable, hash-guarded proposed change to durable project files. A patch whose target hash changed since proposal is stale and must be rebased, never blindly applied.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "agent_patch" },
+    "agent_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "model_route": { "type": "string", "minLength": 1 },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "$ref": "urn:storystable:common#/$defs/relativePath" },
+          "before_hash": { "$ref": "urn:storystable:common#/$defs/sha256" }
+        },
+        "required": ["path", "before_hash"],
+        "additionalProperties": false
+      }
+    },
+    "changes": {
+      "type": "object",
+      "properties": {
+        "format": { "type": "string", "enum": ["unified_diff"] },
+        "payload": { "type": "string" }
+      },
+      "required": ["format", "payload"],
+      "additionalProperties": false
+    },
+    "rationale": { "type": "string" },
+    "checks": {
+      "type": "object",
+      "properties": {
+        "schema_validation": { "$ref": "#/$defs/checkResult" },
+        "link_validation": { "$ref": "#/$defs/checkResult" },
+        "continuity_check": { "$ref": "#/$defs/checkResult" },
+        "tests": { "$ref": "#/$defs/checkResult" }
+      },
+      "additionalProperties": false
+    },
+    "docs_impact": { "type": "string", "enum": ["none", "update_required", "updated"] },
+    "status": {
+      "type": "string",
+      "enum": ["proposed", "approved", "applied", "rejected", "stale"]
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "type",
+    "agent_id",
+    "targets",
+    "changes",
+    "rationale",
+    "status"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "checkResult": {
+      "type": "string",
+      "enum": ["passed", "failed", "not_applicable", "not_run"]
+    }
+  }
+}

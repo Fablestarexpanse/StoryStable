@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:board-panel",
+  "title": "BoardPanel",
+  "description": "A storyboard/animatic interpretation of a Moment. Timing is exact and frame-aware because boards are also animatic objects. BoardPanels stay cheap to branch, reorder, and reject; they are not canonical Shot definitions.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "board_panel" },
+    "scene_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "moment_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "shot_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    },
+    "order": { "type": "integer", "minimum": 0 },
+    "status": { "type": "string", "enum": ["sketch", "candidate", "approved", "rejected"] },
+    "image_asset_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    },
+    "duration": { "$ref": "urn:storystable:common#/$defs/frameDuration" },
+    "captions": {
+      "type": "object",
+      "properties": {
+        "dialogue": { "type": "string" },
+        "action": { "type": "string" },
+        "slugging": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "camera_plan": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "start": { "$ref": "#/$defs/cameraKey" },
+        "end": { "$ref": "#/$defs/cameraKey" },
+        "easing": { "type": "string", "enum": ["linear", "ease_in", "ease_out", "ease_in_out"] },
+        "notes": { "type": "string" }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "annotations": { "type": "array" },
+    "audio_asset_ids": {
+      "type": "array",
+      "items": { "$ref": "urn:storystable:common#/$defs/objectId" }
+    },
+    "reference_set_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "type",
+    "scene_id",
+    "moment_id",
+    "order",
+    "status",
+    "duration"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "cameraKey": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "scale": { "type": "number", "exclusiveMinimum": 0 },
+        "rotation_degrees": { "type": "number" }
+      },
+      "required": ["x", "y", "scale"],
+      "additionalProperties": false
+    }
+  }
+}

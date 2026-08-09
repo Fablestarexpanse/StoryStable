@@ -1,0 +1,13 @@
+{
+  "$schema_id": "urn:storystable:board-panel",
+  "data": {
+    "schema_version": 1,
+    "id": "board_014_02_x",
+    "type": "board_panel",
+    "scene_id": "scene_014",
+    "moment_id": "moment_014_02",
+    "shot_id": null,
+    "order": 21,
+    "status": "sketch"
+  }
+}

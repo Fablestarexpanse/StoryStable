@@ -5,10 +5,12 @@ node_modules/
 
 # Build output
 dist/
+dist-types/
 build/
 out/
 target/
 *.tsbuildinfo
+apps/desktop/src-tauri/gen/
 
 # Environment / secrets
 .env

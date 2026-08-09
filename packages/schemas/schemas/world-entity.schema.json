@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:world-entity",
+  "title": "WorldEntity frontmatter",
+  "description": "Validated YAML frontmatter of a world note. The Markdown body is free-form. Deliberately permissive to additional fields because frontmatter extension is intentional (spec section 4).",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "world_entity" },
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "character",
+        "location",
+        "faction",
+        "culture",
+        "creature",
+        "technology",
+        "item",
+        "event",
+        "rule",
+        "theme",
+        "concept",
+        "research"
+      ]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["draft", "developing", "canon", "deprecated"] },
+    "canon_level": { "type": "string", "enum": ["locked", "strong", "guidance", "inspiration"] },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "tags": { "$ref": "urn:storystable:common#/$defs/tags" },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "target_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+          "relation": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "enum": ["current", "past", "rumored"] }
+        },
+        "required": ["target_id", "relation"],
+        "additionalProperties": false
+      }
+    },
+    "first_appearance": { "$ref": "urn:storystable:common#/$defs/objectId" }
+  },
+  "required": ["schema_version", "id", "type", "entity_type", "title", "status"],
+  "additionalProperties": true
+}

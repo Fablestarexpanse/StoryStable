@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Least-privilege baseline for the main window. Only core event/window/webview defaults; filesystem and process permissions are added per-feature with review (see docs/security/permissions.md).",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

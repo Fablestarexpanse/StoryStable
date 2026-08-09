@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:shot",
+  "title": "Shot",
+  "description": "The renderer-neutral production intent object. Never stores the H3 prompt as the canonical shot description. Supports multiple performances per shot.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "shot" },
+    "scene_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "moment_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    },
+    "order": { "type": "integer", "minimum": 0 },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "board_approved", "generating", "review", "approved", "final"]
+    },
+    "purpose": { "type": "string" },
+    "duration": {
+      "type": "object",
+      "properties": {
+        "target_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "target_frames": {
+          "anyOf": [{ "type": "integer", "minimum": 1 }, { "type": "null" }]
+        },
+        "rate": { "$ref": "urn:storystable:common#/$defs/rational" },
+        "hard_max_seconds": {
+          "anyOf": [{ "type": "number", "exclusiveMinimum": 0 }, { "type": "null" }]
+        }
+      },
+      "required": ["target_seconds", "rate"],
+      "additionalProperties": false
+    },
+    "composition": {
+      "type": "object",
+      "properties": {
+        "shot_size": {
+          "type": "string",
+          "enum": [
+            "extreme_wide",
+            "wide",
+            "full",
+            "medium_full",
+            "medium",
+            "medium_close_up",
+            "close_up",
+            "extreme_close_up"
+          ]
+        },
+        "angle": {
+          "type": "string",
+          "enum": ["eye_level", "low", "high", "overhead", "dutch", "worms_eye"]
+        },
+        "aspect_ratio": { "type": "string", "pattern": "^\\d+:\\d+$" },
+        "lens_mm": { "anyOf": [{ "type": "number", "exclusiveMinimum": 0 }, { "type": "null" }] }
+      },
+      "additionalProperties": false
+    },
+    "camera": {
+      "type": "object",
+      "properties": {
+        "movement": {
+          "type": "string",
+          "enum": [
+            "static",
+            "push_in",
+            "pull_out",
+            "pan",
+            "tilt",
+            "tracking",
+            "crane",
+            "handheld",
+            "orbit",
+            "zoom"
+          ]
+        },
+        "amplitude": { "type": "string", "enum": ["none", "small", "medium", "large"] },
+        "speed": { "type": "string", "enum": ["slow", "medium", "fast"] },
+        "stabilization": { "type": "string", "enum": ["locked", "controlled", "loose"] },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "performances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "character_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+          "intention": { "type": "string" },
+          "action_beats": { "type": "array", "items": { "type": "string" } },
+          "expression": { "type": "string" },
+          "body_language": { "type": "string" },
+          "eyeline": { "type": "string" },
+          "blocking": { "type": "string" },
+          "voice_delivery": { "type": "string" },
+          "continuity_notes": { "type": "string" }
+        },
+        "required": ["character_id"],
+        "additionalProperties": false
+      }
+    },
+    "visual": {
+      "type": "object",
+      "properties": {
+        "environment_id": {
+          "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+        },
+        "lighting": { "type": "string" },
+        "atmosphere": { "type": "string" },
+        "continuity_notes": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "dialogue": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "character_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+          "text": { "type": "string" },
+          "delivery": { "type": "string" },
+          "voiceover": { "type": "boolean" }
+        },
+        "required": ["character_id", "text"],
+        "additionalProperties": false
+      }
+    },
+    "sound": {
+      "type": "object",
+      "properties": {
+        "ambience": { "type": "array", "items": { "type": "string" } },
+        "sfx": { "type": "array", "items": { "type": "string" } },
+        "music": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["none", "diegetic", "non_diegetic"] },
+            "instruction": { "type": "string" }
+          },
+          "required": ["mode"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "keyframes": {
+      "type": "object",
+      "properties": {
+        "first_frame_asset_id": {
+          "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+        },
+        "last_frame_asset_id": {
+          "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+        }
+      },
+      "additionalProperties": false
+    },
+    "reference_set_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    },
+    "renderer": {
+      "type": "object",
+      "properties": {
+        "preferred": { "type": "string", "minLength": 1 },
+        "mode_hint": {
+          "type": "string",
+          "enum": ["auto", "t2va", "i2va", "fl2va", "l2va", "ref2va"]
+        },
+        "profile": { "type": "string", "enum": ["preview", "production", "custom"] }
+      },
+      "required": ["preferred"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "type",
+    "scene_id",
+    "order",
+    "status",
+    "purpose",
+    "duration"
+  ],
+  "additionalProperties": false
+}

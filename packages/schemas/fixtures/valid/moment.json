@@ -1,0 +1,22 @@
+{
+  "$schema_id": "urn:storystable:moment",
+  "data": {
+    "schema_version": 1,
+    "id": "moment_014_02",
+    "type": "moment",
+    "scene_id": "scene_014",
+    "order": 2,
+    "status": "approved",
+    "purpose": "Lan understands that the response is specific to his ship.",
+    "required_information": [
+      "The response is intentional.",
+      "Lan notices before he says anything."
+    ],
+    "emotional_turn": { "from": "recognition", "to": "suppressed_fear" },
+    "state_changes": [
+      { "path": "knowledge.char_lan.fablestar_recognizes_him", "from": false, "to": true }
+    ],
+    "visual_options": ["Cockpit reflection", "Instrument change before visible movement"],
+    "shot_ids": []
+  }
+}

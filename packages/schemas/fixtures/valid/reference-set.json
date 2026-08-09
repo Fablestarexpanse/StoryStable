@@ -1,0 +1,49 @@
+{
+  "$schema_id": "urn:storystable:reference-set",
+  "data": {
+    "schema_version": 1,
+    "id": "refset_shot_014_020",
+    "type": "reference_set",
+    "title": "Lan Recognition Shot",
+    "entries": [
+      {
+        "asset_id": "img_lan_identity_04",
+        "role": "identity",
+        "authority": "locked",
+        "target_entity_id": "char_lan",
+        "priority": 100,
+        "notes": "Face identity only."
+      },
+      {
+        "asset_id": "img_lan_approach_costume_02",
+        "role": "costume",
+        "authority": "locked",
+        "target_entity_id": "char_lan",
+        "priority": 95
+      },
+      {
+        "asset_id": "img_cockpit_03",
+        "role": "environment",
+        "authority": "guidance",
+        "target_entity_id": "loc_ship_cockpit",
+        "priority": 70
+      },
+      {
+        "asset_id": "vid_camera_push_02",
+        "role": "camera_motion",
+        "authority": "strong",
+        "use_scope": "camera_only",
+        "priority": 60,
+        "exclude_traits": ["source character identity", "source environment"]
+      },
+      {
+        "asset_id": "wav_lan_voice_master",
+        "role": "voice",
+        "authority": "locked",
+        "use_scope": "voice_only",
+        "target_entity_id": "char_lan",
+        "priority": 100
+      }
+    ]
+  }
+}

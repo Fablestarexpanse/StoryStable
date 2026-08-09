@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+target/
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/target/
+docs/specs/
+package-lock.json
+CHANGELOG.md

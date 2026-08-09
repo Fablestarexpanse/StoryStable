@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:assembly-clip",
+  "title": "AssemblyClip",
+  "description": "A timeline clip binding shot + selected take into the edit. The master edit serializes to OTIO plus application-specific sidecars.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "assembly_clip" },
+    "sequence_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "shot_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    },
+    "take_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    },
+    "track": { "type": "string", "pattern": "^[VA]\\d+$" },
+    "source_range": { "$ref": "#/$defs/timeRange" },
+    "timeline_range": { "$ref": "#/$defs/timeRange" },
+    "audio": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "gain_db": { "type": "number" }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "transition_in": { "anyOf": [{ "$ref": "#/$defs/transition" }, { "type": "null" }] },
+    "transition_out": { "anyOf": [{ "$ref": "#/$defs/transition" }, { "type": "null" }] },
+    "markers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "at_seconds": { "type": "number", "minimum": 0 },
+          "text": { "type": "string" }
+        },
+        "required": ["at_seconds"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "type",
+    "sequence_id",
+    "track",
+    "source_range",
+    "timeline_range"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "timeRange": {
+      "type": "object",
+      "properties": {
+        "start_seconds": { "type": "number", "minimum": 0 },
+        "duration_seconds": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["start_seconds", "duration_seconds"],
+      "additionalProperties": false
+    },
+    "transition": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["cross_dissolve", "fade_in", "fade_out"] },
+        "duration_seconds": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["kind", "duration_seconds"],
+      "additionalProperties": false
+    }
+  }
+}

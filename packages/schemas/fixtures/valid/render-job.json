@@ -1,0 +1,18 @@
+{
+  "$schema_id": "urn:storystable:render-job",
+  "data": {
+    "schema_version": 1,
+    "id": "renderjob_014_020_v003",
+    "type": "render_job",
+    "generation_packet_id": "genpkt_014_020_v003",
+    "backend": "comfyui",
+    "backend_job_id": "prompt-91f2",
+    "status": "queued",
+    "progress": { "node_id": null, "value": 0, "max": 0 },
+    "queued_at": "2026-08-09T13:01:00-07:00",
+    "started_at": null,
+    "finished_at": null,
+    "cancel_requested": false,
+    "error": null
+  }
+}

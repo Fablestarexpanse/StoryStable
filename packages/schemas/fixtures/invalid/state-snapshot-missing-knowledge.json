@@ -1,0 +1,10 @@
+{
+  "$schema_id": "urn:storystable:state-snapshot",
+  "data": {
+    "schema_version": 1,
+    "id": "state_bad_collapsed",
+    "type": "state_snapshot",
+    "story_position": { "scene_id": "scene_014", "phase": "end" },
+    "world_state": { "char_lan": { "left_hand": "burned" } }
+  }
+}

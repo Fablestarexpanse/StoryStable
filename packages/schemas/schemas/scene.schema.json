@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:storystable:scene",
+  "title": "Scene",
+  "description": "Narrative unit with intent, start/end state, reveals, and moments. Scene body may contain screenplay text, notes, and links.",
+  "type": "object",
+  "properties": {
+    "schema_version": { "$ref": "urn:storystable:common#/$defs/schemaVersion" },
+    "id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "type": { "const": "scene" },
+    "title": { "type": "string", "minLength": 1 },
+    "sequence_id": { "$ref": "urn:storystable:common#/$defs/objectId" },
+    "order": { "type": "integer", "minimum": 0 },
+    "status": {
+      "type": "string",
+      "enum": ["outlined", "drafting", "drafted", "revised", "locked"]
+    },
+    "location_ids": {
+      "type": "array",
+      "items": { "$ref": "urn:storystable:common#/$defs/objectId" }
+    },
+    "character_ids": {
+      "type": "array",
+      "items": { "$ref": "urn:storystable:common#/$defs/objectId" }
+    },
+    "intent": { "type": "string" },
+    "start_state_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    },
+    "end_state_id": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    },
+    "emotional_arc": {
+      "type": "object",
+      "properties": {
+        "from": { "type": "string" },
+        "through": { "type": "string" },
+        "to": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "protected_information": { "type": "array", "items": { "type": "string" } },
+    "reveals": {
+      "type": "object",
+      "properties": {
+        "audience": { "type": "array", "items": { "type": "string" } },
+        "characters": {
+          "type": "object",
+          "additionalProperties": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "additionalProperties": false
+    },
+    "moment_ids": {
+      "type": "array",
+      "items": { "$ref": "urn:storystable:common#/$defs/objectId" }
+    },
+    "branch_of": {
+      "anyOf": [{ "$ref": "urn:storystable:common#/$defs/objectId" }, { "type": "null" }]
+    }
+  },
+  "required": ["schema_version", "id", "type", "title", "order", "status"],
+  "additionalProperties": false
+}

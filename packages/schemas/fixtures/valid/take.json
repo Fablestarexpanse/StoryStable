@@ -1,0 +1,25 @@
+{
+  "$schema_id": "urn:storystable:take",
+  "data": {
+    "schema_version": 1,
+    "id": "take_014_020_003",
+    "type": "take",
+    "shot_id": "shot_014_020",
+    "generation_packet_id": "genpkt_014_020_v003",
+    "render_job_id": "renderjob_014_020_v003",
+    "status": "candidate",
+    "files": {
+      "video": "Media/Video/take_014_020_003.mp4",
+      "audio": null,
+      "thumbnail": "Media/Thumbnails/take_014_020_003.webp"
+    },
+    "lineage": { "parent_take_id": null, "continuation_of_take_id": null },
+    "review": { "rating": null, "decision": "hold", "notes": [] },
+    "qc": {
+      "duration_ok": true,
+      "resolution_ok": true,
+      "audio_present": true,
+      "identity_review": "pending"
+    }
+  }
+}

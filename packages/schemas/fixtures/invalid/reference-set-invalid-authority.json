@@ -1,0 +1,17 @@
+{
+  "$schema_id": "urn:storystable:reference-set",
+  "data": {
+    "schema_version": 1,
+    "id": "refset_bad_authority",
+    "type": "reference_set",
+    "title": "v0.1-style authority must be rejected",
+    "entries": [
+      {
+        "asset_id": "vid_camera_push_02",
+        "role": "camera_motion",
+        "authority": "motion_only",
+        "priority": 60
+      }
+    ]
+  }
+}
