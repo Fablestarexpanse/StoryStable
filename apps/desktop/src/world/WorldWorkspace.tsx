@@ -1,7 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { parseNote, buildLinkIndex, type ParsedNote } from '@storystable/vault';
-import type { ProjectInfo } from '../services/vault.js';
-import { createProject, openProject, listNotes, readNote } from '../services/vault.js';
+import type { ProjectInfo, SearchHit } from '../services/vault.js';
+import {
+  createProject,
+  openProject,
+  listNotes,
+  readNote,
+  writeNote,
+  rebuildIndex,
+  searchNotes,
+  watchProject,
+  onVaultChanged,
+} from '../services/vault.js';
+import { MarkdownEditor } from './MarkdownEditor.js';
 
 interface VaultState {
   project: ProjectInfo;
@@ -16,8 +27,13 @@ export function WorldWorkspace() {
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState('');
+  const [hits, setHits] = useState<SearchHit[] | null>(null);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
-  const loadVault = useCallback(async (project: ProjectInfo) => {
+  const refreshNotes = useCallback(async (project: ProjectInfo) => {
     const notePaths = await listNotes(project.root);
     const notes = await Promise.all(
       notePaths.map(async (path) =>
@@ -25,8 +41,17 @@ export function WorldWorkspace() {
       ),
     );
     setVault({ project, notePaths, notes });
-    setSelected(null);
   }, []);
+
+  const loadVault = useCallback(
+    async (project: ProjectInfo) => {
+      await rebuildIndex(project.root);
+      await refreshNotes(project);
+      await watchProject(project.root);
+      setSelected(null);
+    },
+    [refreshNotes],
+  );
 
   const run = useCallback(
     (action: () => Promise<void>) => {
@@ -44,13 +69,66 @@ export function WorldWorkspace() {
     [busy],
   );
 
+  // Live refresh from the file watcher, debounced. Skip while editing so an
+  // in-progress draft is never clobbered by our own saves.
+  const dirtyRef = useRef(false);
+  dirtyRef.current = dirty;
+  useEffect(() => {
+    if (!vault) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const unlistenPromise = onVaultChanged(() => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (!dirtyRef.current) void refreshNotes(vault.project);
+      }, 300);
+    });
+    return () => {
+      if (timer) clearTimeout(timer);
+      void unlistenPromise.then((unlisten) => {
+        unlisten();
+      });
+    };
+  }, [vault, refreshNotes]);
+
+  // Full-text search, debounced.
+  useEffect(() => {
+    if (!vault) return;
+    const q = query.trim();
+    if (q === '') {
+      setHits(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      searchNotes(vault.project.root, q).then(setHits, () => {
+        setHits([]);
+      });
+    }, 150);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [query, vault]);
+
   const linkIndex = useMemo(() => (vault ? buildLinkIndex(vault.notes) : null), [vault]);
   const selectedNote = vault?.notes.find((n) => n.path === selected) ?? null;
   const backlinks = selected && linkIndex ? (linkIndex.backlinks.get(selected) ?? []) : [];
 
-  useEffect(() => {
+  const selectNote = useCallback((path: string) => {
+    setSelected(path);
+    setDraft(null);
+    setDirty(false);
+    setSavedAt(null);
     setError(null);
-  }, [selected]);
+  }, []);
+
+  const save = useCallback(() => {
+    if (!vault || !selected || draft === null) return;
+    run(async () => {
+      await writeNote(vault.project.root, selected, draft);
+      setDirty(false);
+      setSavedAt(Date.now());
+      await refreshNotes(vault.project);
+    });
+  }, [vault, selected, draft, run, refreshNotes]);
 
   if (!vault) {
     return (
@@ -109,42 +187,75 @@ export function WorldWorkspace() {
   return (
     <div className="vault">
       <aside className="navigator">
-        <div className="project-name">
-          {vault.project.name}
-          <button
-            className="link-btn"
-            onClick={() => {
-              run(async () => {
-                await loadVault(vault.project);
-              });
-            }}
-          >
-            refresh
-          </button>
-        </div>
-        <ul>
-          {vault.notePaths.map((path) => (
-            <li key={path}>
-              <button
-                className={path === selected ? 'note active' : 'note'}
-                onClick={() => {
-                  setSelected(path);
-                }}
-              >
-                {path}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="project-name">{vault.project.name}</div>
+        <input
+          className="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+          }}
+          placeholder="Search notes…"
+          spellCheck={false}
+        />
+        {hits ? (
+          <ul>
+            {hits.length === 0 && <li className="hint">No matches.</li>}
+            {hits.map((hit) => (
+              <li key={hit.path}>
+                <button
+                  className={hit.path === selected ? 'note active' : 'note'}
+                  onClick={() => {
+                    selectNote(hit.path);
+                  }}
+                >
+                  <span className="note-title">{hit.title}</span>
+                  <span className="snippet">{hit.snippet}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul>
+            {vault.notePaths.map((path) => (
+              <li key={path}>
+                <button
+                  className={path === selected ? 'note active' : 'note'}
+                  onClick={() => {
+                    selectNote(path);
+                  }}
+                >
+                  {path}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </aside>
       <section className="editor">
         {selectedNote ? (
           <>
-            <h2>{selectedNote.title}</h2>
+            <div className="editor-head">
+              <h2>{selectedNote.title}</h2>
+              <div className="editor-actions">
+                {dirty && <span className="dirty-dot" title="Unsaved changes" />}
+                {!dirty && savedAt !== null && <span className="saved">saved</span>}
+                <button disabled={!dirty || busy} onClick={save}>
+                  Save
+                </button>
+              </div>
+            </div>
             {selectedNote.frontmatterErrors.length > 0 && (
               <p className="error">frontmatter: {selectedNote.frontmatterErrors.join('; ')}</p>
             )}
-            <pre className="note-body">{selectedNote.body}</pre>
+            <MarkdownEditor
+              path={selectedNote.path}
+              source={draft ?? selectedNote.source}
+              onChange={(contents) => {
+                setDraft(contents);
+                setDirty(true);
+              }}
+              onSave={save}
+            />
           </>
         ) : (
           <p className="hint">Select a note.</p>
@@ -168,7 +279,7 @@ export function WorldWorkspace() {
                   <button
                     className="note"
                     onClick={() => {
-                      setSelected(b);
+                      selectNote(b);
                     }}
                   >
                     {b}

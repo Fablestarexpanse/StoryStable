@@ -11,6 +11,12 @@ and agent definition versions.
 
 ### Added
 
+- Phase 1 (second increment): SQLite FTS5 index (`.project/index.sqlite`) —
+  versioned schema, full rebuild from files, incremental upsert/remove,
+  bm25-ranked search with snippets and operator-injection-safe queries;
+  notify-based file watcher emitting `vault-changed`; WORLD search box;
+  CodeMirror 6 Markdown editor with Ctrl+S atomic save; `index_health`
+  command reporting note count and SQLite integrity.
 - Phase 1 (first increment): `packages/vault` domain layer — never-throwing
   YAML frontmatter parsing, wikilink extraction (aliases, headings, embeds,
   code-block exclusion), case-insensitive link resolution, backlink index.

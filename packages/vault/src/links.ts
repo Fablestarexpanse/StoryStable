@@ -11,6 +11,8 @@ export interface NoteInput {
 
 export interface ParsedNote {
   path: string;
+  /** Full note source exactly as stored on disk. */
+  source: string;
   /** Filename without directory or `.md` extension. */
   stem: string;
   title: string;
@@ -31,6 +33,7 @@ export function parseNote(input: NoteInput): ParsedNote {
     : [];
   return {
     path: input.path,
+    source: input.source,
     stem,
     title,
     aliases,

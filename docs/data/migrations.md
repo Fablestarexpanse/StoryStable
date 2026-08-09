@@ -8,4 +8,10 @@ release - add a new migration instead.
 Because SQLite is an index/cache, an irrecoverable index migration must fall
 back to rebuilding from authoritative files rather than risking user content.
 
-No migrations exist yet; the first arrives with the Phase 1 index.
+The index database (`.project/index.sqlite`) tracks its schema version via
+SQLite `user_version`, applied transactionally in
+`apps/desktop/src-tauri/src/vault/index_db.rs` (`INDEX_VERSION`). Opening an
+index newer than the app supports fails loudly with a rebuild instruction
+instead of guessing. Because the index is a cache, its recovery path is
+delete-and-rebuild from files — verified by test
+`rebuild_recovers_from_deleted_index`.

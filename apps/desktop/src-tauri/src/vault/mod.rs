@@ -6,8 +6,10 @@
 //! - user-authored durable content lives outside `.project/`
 
 pub mod atomic;
+pub mod index_db;
 pub mod paths;
 pub mod project;
+pub mod watcher;
 
 use serde::Serialize;
 
@@ -23,6 +25,8 @@ pub enum VaultError {
     InvalidProject(String),
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("index error: {0}")]
+    Sqlite(#[from] rusqlite::Error),
 }
 
 /// Serialized to the frontend as a plain message string.

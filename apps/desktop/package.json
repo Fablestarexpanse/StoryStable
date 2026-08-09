@@ -9,8 +9,10 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@codemirror/lang-markdown": "^6.5.0",
     "@storystable/vault": "*",
     "@tauri-apps/api": "^2.9.0",
+    "codemirror": "^6.0.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },

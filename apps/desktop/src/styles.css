@@ -220,6 +220,91 @@ button.note.active {
   font-size: 0.85rem;
 }
 
+.search {
+  width: 100%;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: transparent;
+  color: inherit;
+}
+
+.note-title {
+  display: block;
+  font-weight: 600;
+}
+
+.snippet {
+  display: block;
+  opacity: 0.65;
+  font-size: 0.78rem;
+}
+
+.editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.editor-actions button {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+
+.editor-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dirty-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f2b64c;
+}
+
+.saved {
+  font-size: 0.75rem;
+  opacity: 0.55;
+}
+
+.cm-host {
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cm-host .cm-editor {
+  max-height: calc(100vh - 180px);
+}
+
+.cm-host .cm-editor.cm-focused {
+  outline: none;
+}
+
+.cm-host .cm-scroller {
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
 .hint {
   opacity: 0.55;
   font-size: 0.9rem;

@@ -54,17 +54,17 @@ Owner: agent
 Acceptance criteria
 
 - [x] Project create/open (spec §3 layout, atomic writes, path-safety guard)
-- [ ] Markdown editor (CodeMirror 6) — current viewer is read-only
+- [x] Markdown editor (CodeMirror 6, Ctrl+S save through atomic writes)
 - [x] YAML frontmatter parse (never-throwing) — validate/edit UI pending
 - [x] Wikilinks (targets, aliases, headings, embeds; code blocks excluded)
 - [x] Backlinks — unlinked mentions pending
-- [ ] Full-text search (SQLite FTS5)
-- [ ] File watcher with incremental indexing
-- [ ] SQLite index build and rebuild-from-files
+- [x] Full-text search (SQLite FTS5, bm25 ranking, snippets, injection-safe)
+- [x] File watcher with incremental indexing (`vault-changed` events)
+- [x] SQLite index build and rebuild-from-files (versioned via user_version)
 - [ ] Basic knowledge graph
 - [ ] Canvas (JSON Canvas compatible)
 - [ ] Attachments
-- [ ] Project Health panel
+- [ ] Project Health panel — `index_health` command exists; panel UI pending
 
 Notes
 
@@ -72,8 +72,13 @@ Notes
   layer (no filesystem access); Rust owns project layout, path safety, and
   atomic IO behind five Tauri commands; WORLD workspace has project
   open/create, note list, viewer, properties, links, and backlinks.
-  Link resolution currently rebuilds in-memory on load/refresh — the SQLite
-  index replaces that in the next increment.
+- 2026-08-09: second increment landed. SQLite FTS5 index at
+  `.project/index.sqlite` (rebuildable cache, fails loudly on
+  newer-than-supported version), notify-based watcher with incremental
+  upsert/remove, search UI with snippets, CodeMirror 6 editor with
+  dirty-state save. Index title extraction is deliberately minimal in Rust —
+  the TS domain layer stays the owner of rich parsing (see
+  docs/data/schemas.md boundary note).
 
 ---
 
