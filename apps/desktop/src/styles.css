@@ -693,6 +693,172 @@ button.note.active {
   opacity: 0.7;
 }
 
+/* Canon indicators */
+
+.canon-row {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+}
+
+.badge.canon-locked {
+  background: color-mix(in srgb, #e5484d 25%, transparent);
+}
+
+.badge.canon-strong {
+  background: color-mix(in srgb, #f2b64c 25%, transparent);
+}
+
+.badge.canon-guidance {
+  background: color-mix(in srgb, #7896ff 22%, transparent);
+}
+
+.badge.canon-inspiration {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.badge.status-canon {
+  background: color-mix(in srgb, #4cc38a 25%, transparent);
+}
+
+.badge.status-draft,
+.badge.status-developing {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* Knowledge matrix */
+
+.knowledge {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 0.5rem;
+}
+
+.knowledge-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+
+.knowledge-toolbar select {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-left: 0.6rem;
+}
+
+.swatch.known,
+.belief.known {
+  background: color-mix(in srgb, #4cc38a 28%, transparent);
+}
+
+.swatch.false_belief,
+.belief.false_belief {
+  background: color-mix(in srgb, #e5484d 30%, transparent);
+}
+
+.swatch.unknown,
+.belief.unknown {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.knowledge-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.knowledge-table {
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+.knowledge-table th {
+  position: sticky;
+  top: 0;
+  background: Canvas;
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  white-space: nowrap;
+}
+
+.knowledge-table td {
+  padding: 0.3rem 0.6rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.knowledge-table .fact-col {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.76rem;
+  max-width: 240px;
+  word-break: break-all;
+}
+
+.knowledge-table .truth-col {
+  font-weight: 600;
+}
+
+.unrecorded {
+  opacity: 0.4;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.belief {
+  text-align: center;
+}
+
+.spoilers {
+  list-style: none;
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+.spoilers li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  padding: 0.2rem 0;
+}
+
+.knowledge h3 {
+  margin: 1.1rem 0 0.3rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
 /* Canvas view */
 
 .canvas-view {

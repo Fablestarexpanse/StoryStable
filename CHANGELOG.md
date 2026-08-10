@@ -17,6 +17,15 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 2 (third increment, completes Phase 2): truth / character knowledge /
+  audience knowledge model. State snapshots are parsed, ordered by scene, and
+  resolved into world state and per-observer knowledge at any story position;
+  beliefs are classified as known, unknown, or false belief against recorded
+  world truth; spoiler sets list what the audience knows that a given
+  character does not. Integrity checks (unanchored snapshots, duplicate
+  positions, unknown observers, knowledge regression) feed Project Health.
+  New knowledge matrix view with a story-position selector, plus status and
+  canon-level badges in the inspector.
 - Phase 2 (second increment): typed directional relationships parsed from
   frontmatter, resolved by stable id or title, with symmetric and inverse
   reciprocity checks reported as Project Health advisories; relationships

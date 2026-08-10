@@ -99,7 +99,7 @@ Notes
 
 ## Phase 2 — Structured World
 
-Status: IN PROGRESS
+Status: DONE
 Owner: agent
 
 Acceptance criteria
@@ -113,10 +113,11 @@ Acceptance criteria
       checks, inspector display)
 - [x] World timeline and events (lenient fictional-date parsing, spans,
       eras, chronology conflict warnings)
-- [ ] Canon status and conflict indicators — canon_level is authored and
-      validated; dedicated indicators still pending
+- [x] Canon status and conflict indicators (status + canon_level badges;
+      conflicts surface through Project Health categories)
 - [x] Reference attachments (delivered in Phase 1)
-- [ ] Truth / character knowledge / audience knowledge model
+- [x] Truth / character knowledge / audience knowledge model (state snapshots,
+      per-observer resolution, false-belief detection, spoiler sets)
 
 Notes
 
@@ -134,6 +135,16 @@ Notes
   unparseable dates as visible unordered labels instead of dropping them.
   Chronology conflicts downgrade to advisory when the lifespan date is
   itself uncertain.
+- 2026-08-09: third increment completes Phase 2. The truth/knowledge model
+  keeps world truth, per-character belief, and audience knowledge as three
+  distinct layers, resolves state at any story position, detects false
+  beliefs against recorded truth, and derives spoiler sets (what the audience
+  knows that a character does not) — the substrate Phase 3 agents need to
+  avoid omniscient dialogue. Knowledge regression is reported as an advisory
+  question rather than an error, since deliberate forgetting is legitimate.
+  Known gap carried forward: beliefs are only checkable against world truth
+  when the fact key matches a flattened `entity.property` path; free-form
+  fact keys are recorded and displayed but cannot be truth-compared.
 
 ---
 

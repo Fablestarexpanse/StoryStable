@@ -9,6 +9,22 @@ export type {
   RelationType,
   RelationStatus,
 } from './relationships.js';
+export {
+  buildKnowledgeModel,
+  stateAt,
+  beliefsFor,
+  spoilersFor,
+  isUnknownValue,
+  AUDIENCE,
+} from './knowledge.js';
+export type {
+  KnowledgeModel,
+  StateSnapshotNote,
+  Belief,
+  BeliefKind,
+  FactValue,
+  KnowledgeIssue,
+} from './knowledge.js';
 export { buildTimeline, parseWorldDate, parseDateRange } from './timeline.js';
 export type { Timeline, TimelineEvent, TimelineConflict, WorldDate } from './timeline.js';
 export { collectColumns, buildRows, groupRows, formatValue, rowsToCsv } from './properties.js';

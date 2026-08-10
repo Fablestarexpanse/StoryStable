@@ -12,6 +12,7 @@ import { HealthView } from './HealthView.js';
 import { CanvasView } from './CanvasView.js';
 import { PropertiesView } from './PropertiesView.js';
 import { TimelineView } from './TimelineView.js';
+import { KnowledgeView } from './KnowledgeView.js';
 import type { Attachment, ProjectInfo, RecentProject, SearchHit } from '../services/vault.js';
 import {
   createProject,
@@ -55,9 +56,9 @@ export function WorldWorkspace() {
   const [draft, setDraft] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const [view, setView] = useState<'notes' | 'table' | 'graph' | 'timeline' | 'canvas' | 'health'>(
-    'notes',
-  );
+  const [view, setView] = useState<
+    'notes' | 'table' | 'graph' | 'timeline' | 'knowledge' | 'canvas' | 'health'
+  >('notes');
   const [recents, setRecents] = useState<RecentProject[]>([]);
 
   const refreshNotes = useCallback(async (project: ProjectInfo) => {
@@ -291,18 +292,20 @@ export function WorldWorkspace() {
       <aside className="navigator">
         <div className="project-name">{vault.project.name}</div>
         <div className="view-switch">
-          {(['notes', 'table', 'graph', 'timeline', 'canvas', 'health'] as const).map((v) => (
-            <button
-              key={v}
-              className={view === v ? 'view active' : 'view'}
-              onClick={() => {
-                setView(v);
-              }}
-            >
-              {v}
-              {v === 'health' && healthCount > 0 && <em className="count">{healthCount}</em>}
-            </button>
-          ))}
+          {(['notes', 'table', 'graph', 'timeline', 'knowledge', 'canvas', 'health'] as const).map(
+            (v) => (
+              <button
+                key={v}
+                className={view === v ? 'view active' : 'view'}
+                onClick={() => {
+                  setView(v);
+                }}
+              >
+                {v}
+                {v === 'health' && healthCount > 0 && <em className="count">{healthCount}</em>}
+              </button>
+            ),
+          )}
         </div>
         <input
           className="search"
@@ -363,6 +366,8 @@ export function WorldWorkspace() {
           />
         ) : view === 'timeline' ? (
           <TimelineView notes={vault.notes} onOpen={selectNote} />
+        ) : view === 'knowledge' ? (
+          <KnowledgeView notes={vault.notes} onOpen={selectNote} />
         ) : view === 'graph' && graph ? (
           <GraphView graph={graph} onOpen={selectNote} />
         ) : view === 'canvas' ? (
@@ -405,6 +410,24 @@ export function WorldWorkspace() {
       <aside className="inspector">
         {selectedNote && (
           <>
+            {(typeof selectedNote.frontmatter.status === 'string' ||
+              typeof selectedNote.frontmatter.canon_level === 'string') && (
+              <div className="canon-row">
+                {typeof selectedNote.frontmatter.status === 'string' && (
+                  <span className={`badge status-${selectedNote.frontmatter.status}`}>
+                    {selectedNote.frontmatter.status}
+                  </span>
+                )}
+                {typeof selectedNote.frontmatter.canon_level === 'string' && (
+                  <span
+                    className={`badge canon-${selectedNote.frontmatter.canon_level}`}
+                    title="Canon authority"
+                  >
+                    {selectedNote.frontmatter.canon_level}
+                  </span>
+                )}
+              </div>
+            )}
             <h3>Properties</h3>
             <pre className="fm">{JSON.stringify(selectedNote.frontmatter, null, 2)}</pre>
             <h3>Links</h3>

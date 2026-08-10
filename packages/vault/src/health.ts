@@ -1,5 +1,6 @@
 import type { LinkIndex, ParsedNote } from './links.js';
 import { buildRelationshipIndex } from './relationships.js';
+import { buildKnowledgeModel } from './knowledge.js';
 import { buildTimeline } from './timeline.js';
 
 export type HealthSeverity = 'error' | 'warning' | 'advisory';
@@ -130,6 +131,16 @@ export function computeHealth(
       category: 'one-sided-relationship',
       path: relationship.fromPath,
       message: `declares "${relationship.relation}" toward ${relationship.targetId}, which does not declare "${expected}" back`,
+    });
+  }
+
+  // Knowledge-layer integrity (spec §5.2 / PRODUCT_SPEC §5.7).
+  for (const issue of buildKnowledgeModel(notes).issues) {
+    findings.push({
+      severity: issue.severity,
+      category: 'knowledge',
+      path: issue.path,
+      message: issue.message,
     });
   }
 
