@@ -17,6 +17,18 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 5 (first increment): Shot parsing and the Shot-to-H3 bridge. Shot notes
+  are read leniently — a half-written shot is a normal state of work, so
+  nothing is rejected for being incomplete and unrecognised enum values are
+  dropped rather than carried through. Keyframe assets become picture
+  references automatically, which is what drives H3 mode routing: a shot with
+  a first frame compiles as I2VA and one with both as FL2VA, without anyone
+  choosing a mode by hand, while an explicit `renderer.mode_hint` still wins.
+  Camera intent is rendered in H3's motion / amplitude / speed order with
+  medium and normal values omitted as the format directs. Where H3 needs
+  something the Shot cannot express — a pan's direction, an unresolved
+  reference set — the bridge reports a gap rather than inventing one, since a
+  guessed camera direction is worse than an acknowledged missing one.
 - Phase 6 (first increment): MiniMax H3 prompt compiler. H3 syntax exists only
   here — shots stay renderer-neutral per spec §1.4/§1.5, so nothing in the
   vault stores an H3 prompt as authored content and every prompt is

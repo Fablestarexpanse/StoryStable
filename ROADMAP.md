@@ -243,8 +243,8 @@ Notes
 
 ## Phase 5 — Studio / Images
 
-Status: NOT STARTED
-Owner: unassigned
+Status: IN PROGRESS
+Owner: agent
 
 Acceptance criteria
 
@@ -252,10 +252,26 @@ Acceptance criteria
 - [ ] Reference sets with role/authority/use-scope
 - [ ] Visual exploration canvas
 - [ ] Storyboard with frame-exact panel timing
-- [ ] Shot objects
+- [x] Shot objects — parsed from notes and bridged to the H3 compiler; no
+      Shot editor UI yet
 - [ ] ComfyUI backend connection
 - [ ] Versioned workflow adapters with incompatibility detection
 - [ ] Image generation ingest and lineage
+
+Notes
+
+- 2026-08-10: first increment. Shot parsing plus the adapter Phase 6 was
+  waiting on. Parsing is lenient by design — an incomplete shot is normal
+  work in progress — and unrecognised enum values are dropped rather than
+  carried into the compiler, where they would produce silently wrong output.
+- Keyframe assets become picture references in the adapter, so H3 mode
+  routing falls out of what the shot actually has rather than from a mode
+  someone selected. An explicit `renderer.mode_hint` still overrides it.
+- The Shot schema stores `pan`, `tilt`, `crane`, and `zoom` without a
+  direction, but H3 needs Pan Left or Pan Right. The bridge reports that as a
+  gap instead of picking one. Same for a reference set the caller has not
+  resolved: the shot names it, the adapter cannot read the vault, so it says
+  so rather than compiling as though the set were empty. 30 tests.
 
 ---
 
@@ -286,9 +302,9 @@ Acceptance criteria
 Notes
 
 - 2026-08-10: first increment, taken ahead of Phase 5 because the compiler is
-  useful on its own and testable in isolation. Its input is a local type
-  rather than the Phase 5 `Shot` object, which does not exist yet; wiring is
-  one adapter function when shots land.
+  useful on its own and testable in isolation. Its input was a local type
+  rather than the Phase 5 `Shot` object; that gap is now closed by
+  `shotToH3Input` in the Phase 5 work below.
 - The design rule the whole phase rests on: H3 syntax exists only inside the
   compiler. The vault never stores a compiled prompt as authored content, so a
   shot can be retargeted to another renderer and every prompt is reproducible
