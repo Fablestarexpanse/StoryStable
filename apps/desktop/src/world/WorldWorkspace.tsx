@@ -10,7 +10,7 @@ import { GraphView } from './GraphView.js';
 import { HealthView } from './HealthView.js';
 import { CanvasView } from './CanvasView.js';
 import { PropertiesView } from './PropertiesView.js';
-import type { Attachment, ProjectInfo, SearchHit } from '../services/vault.js';
+import type { Attachment, ProjectInfo, RecentProject, SearchHit } from '../services/vault.js';
 import {
   createProject,
   openProject,
@@ -22,6 +22,9 @@ import {
   watchProject,
   onVaultChanged,
   listAttachments,
+  recentProjects,
+  rememberProject,
+  forgetProject,
 } from '../services/vault.js';
 import { MarkdownEditor } from './MarkdownEditor.js';
 
@@ -51,6 +54,7 @@ export function WorldWorkspace() {
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [view, setView] = useState<'notes' | 'table' | 'graph' | 'canvas' | 'health'>('notes');
+  const [recents, setRecents] = useState<RecentProject[]>([]);
 
   const refreshNotes = useCallback(async (project: ProjectInfo) => {
     const notePaths = await listNotes(project.root);
@@ -68,10 +72,23 @@ export function WorldWorkspace() {
       await rebuildIndex(project.root);
       await refreshNotes(project);
       await watchProject(project.root);
+      // Remembering is best-effort: a failure here must not block the open.
+      try {
+        setRecents(await rememberProject(project.root, project.name));
+      } catch {
+        /* ignore */
+      }
       setSelected(null);
     },
     [refreshNotes],
   );
+
+  // Load the recents list once, for the launch screen.
+  useEffect(() => {
+    recentProjects().then(setRecents, () => {
+      setRecents([]);
+    });
+  }, []);
 
   const run = useCallback(
     (action: () => Promise<void>) => {
@@ -170,6 +187,42 @@ export function WorldWorkspace() {
     return (
       <div className="vault-setup">
         <h1>Open a project vault</h1>
+
+        {recents.length > 0 && (
+          <div className="recents">
+            <h2>Recent projects</h2>
+            <ul>
+              {recents.map((r) => (
+                <li key={r.root} className={r.exists ? 'recent' : 'recent missing'}>
+                  <button
+                    className="recent-open"
+                    disabled={busy || !r.exists}
+                    title={r.exists ? r.root : `${r.root} (not found)`}
+                    onClick={() => {
+                      run(async () => {
+                        await loadVault(await openProject(r.root));
+                      });
+                    }}
+                  >
+                    <span className="recent-name">{r.name}</span>
+                    <span className="recent-path">{r.root}</span>
+                    {!r.exists && <span className="badge error">missing</span>}
+                  </button>
+                  <button
+                    className="link-btn"
+                    title="Remove from list"
+                    onClick={() => {
+                      forgetProject(r.root).then(setRecents, () => undefined);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <label>
           Project folder
           <input

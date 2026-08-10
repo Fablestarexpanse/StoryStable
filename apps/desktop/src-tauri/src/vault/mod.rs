@@ -10,6 +10,7 @@ pub mod atomic;
 pub mod index_db;
 pub mod paths;
 pub mod project;
+pub mod recents;
 pub mod watcher;
 
 use serde::Serialize;

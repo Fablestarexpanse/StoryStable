@@ -11,6 +11,12 @@ and agent definition versions.
 
 ### Added
 
+- Recent projects: opened and created vaults are remembered in the OS
+  app-config directory (never inside a vault) and listed on the launch screen
+  for one-click reopening, with duplicate-path collapsing across Windows path
+  spellings, a "missing" marker when a folder has moved, and per-entry
+  removal. A corrupt or unreadable recents file degrades to an empty list
+  rather than blocking project opening.
 - Phase 2 (first increment): browser-safe schema validation
   (`@storystable/schemas/browser`) backed by static schema imports, with a
   drift test that fails if the static list or its content diverges from the

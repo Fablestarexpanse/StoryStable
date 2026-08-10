@@ -88,6 +88,72 @@ body {
   padding: 2rem;
 }
 
+.recents {
+  width: min(560px, 92%);
+}
+
+.recents h2 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin-bottom: 0.4rem;
+}
+
+.recents ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recents li {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.recent-open {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  border: 1px solid transparent;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 0.45rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.recent-open:hover:not(:disabled) {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.recent-open:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.recent-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.recent-path {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  word-break: break-all;
+}
+
+.recents .missing .recent-name {
+  text-decoration: line-through;
+}
+
 .vault-setup label {
   display: flex;
   flex-direction: column;

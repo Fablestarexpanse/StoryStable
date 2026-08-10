@@ -6,8 +6,23 @@ use tauri::Manager;
 use vault::assets::{self, Attachment};
 use vault::index_db::{IndexDb, IndexStats, SearchHit};
 use vault::project::{self, ProjectInfo};
+use vault::recents::{self, RecentProject};
 use vault::watcher::{self, WatcherState};
 use vault::VaultError;
+
+/// Directory the app stores its own state in — never inside a vault.
+fn config_dir(app: &tauri::AppHandle) -> Result<PathBuf, VaultError> {
+    app.path()
+        .app_config_dir()
+        .map_err(|e| VaultError::InvalidProject(format!("no app config dir: {e}")))
+}
+
+fn now_ms() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as i64)
+        .unwrap_or(0)
+}
 
 /// App version reported to the frontend.
 #[tauri::command]
@@ -55,6 +70,25 @@ fn search_notes(root: String, query: String) -> Result<Vec<SearchHit>, VaultErro
 fn watch_project(app: tauri::AppHandle, root: String) -> Result<(), VaultError> {
     let state = app.state::<WatcherState>();
     watcher::start_watching(app.clone(), &state, PathBuf::from(root))
+}
+
+#[tauri::command]
+fn recent_projects(app: tauri::AppHandle) -> Result<Vec<RecentProject>, VaultError> {
+    Ok(recents::list_recents(&config_dir(&app)?))
+}
+
+#[tauri::command]
+fn remember_project(
+    app: tauri::AppHandle,
+    root: String,
+    name: String,
+) -> Result<Vec<RecentProject>, VaultError> {
+    recents::remember(&config_dir(&app)?, &root, &name, now_ms())
+}
+
+#[tauri::command]
+fn forget_project(app: tauri::AppHandle, root: String) -> Result<Vec<RecentProject>, VaultError> {
+    recents::forget(&config_dir(&app)?, &root)
 }
 
 #[tauri::command]
@@ -110,7 +144,10 @@ pub fn run() {
             list_attachments,
             list_canvases,
             read_canvas,
-            write_canvas
+            write_canvas,
+            recent_projects,
+            remember_project,
+            forget_project
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

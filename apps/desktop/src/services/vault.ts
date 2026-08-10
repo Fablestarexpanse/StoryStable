@@ -32,6 +32,14 @@ export interface Attachment {
   size: number;
 }
 
+export interface RecentProject {
+  root: string;
+  name: string;
+  opened_at: number;
+  /** False when the folder no longer contains a project.yaml. */
+  exists: boolean;
+}
+
 export const createProject = (root: string, name: string) =>
   invoke<ProjectInfo>('create_project', { root, name });
 
@@ -55,6 +63,13 @@ export const watchProject = async (root: string): Promise<void> => {
 };
 
 export const indexHealth = (root: string) => invoke<IndexHealth>('index_health', { root });
+
+export const recentProjects = () => invoke<RecentProject[]>('recent_projects');
+
+export const rememberProject = (root: string, name: string) =>
+  invoke<RecentProject[]>('remember_project', { root, name });
+
+export const forgetProject = (root: string) => invoke<RecentProject[]>('forget_project', { root });
 
 export const listAttachments = (root: string) => invoke<Attachment[]>('list_attachments', { root });
 
