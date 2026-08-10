@@ -17,6 +17,12 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 3 (second increment): agents can propose edits. The target note's
+  hash is captured before the request, the response is shown as a line diff
+  with collapsed unchanged context, and applying re-checks the hash — a note
+  changed since the proposal is refused rather than overwritten. An
+  accidental code fence around returned file contents is stripped. Nothing
+  is written until the change has been reviewed.
 - Phase 3 (first increment): agent system. Provider credentials stored in the
   OS credential manager, never returned to the webview and redacted from
   provider errors; Model Gateway with a capability registry and routing

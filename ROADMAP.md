@@ -161,7 +161,7 @@ Acceptance criteria
       pending, so LocalOnly currently has no provider to route to
 - [x] Capability registry
 - [x] Context Inspector (per-item toggles, token estimate, withheld facts)
-- [ ] `AgentPatch` propose/review/apply with stale-patch detection
+- [x] `AgentPatch` propose/review/apply with stale-patch detection
 - [x] Tool risk levels and permission policy (all agents read-only,
       review-gated; enforced by test)
 - [x] Writing Partner
@@ -179,9 +179,13 @@ Notes
   Requests omit `temperature`/`top_p`/`top_k` and `budget_tokens` (rejected by
   the current model family) and check `stop_reason` before reading content so
   a refusal is not mistaken for an empty answer.
-- Agents are read-only in this increment: output is a proposal shown in the
-  panel, and nothing is written to the vault. The AgentPatch write path with
-  stale-hash detection is the next increment.
+- 2026-08-10: second increment. Agents can now propose an edit to the
+  selected note: the note's hash is captured before sending, the response is
+  diffed for review, and applying re-checks the hash and refuses if the file
+  changed in the meantime. The model returns the whole revised file, and an
+  accidental code fence around it is stripped rather than written into the
+  note. Remaining for Phase 3: local provider adapters (Ollama / LM Studio),
+  without which Local Only has no provider to route to.
 
 ---
 

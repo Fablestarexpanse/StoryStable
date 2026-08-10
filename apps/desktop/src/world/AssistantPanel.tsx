@@ -3,12 +3,14 @@ import {
   buildAgentContext,
   renderContext,
   spoilerInstruction,
+  stripCodeFence,
   AGENTS,
   agentById,
   buildKnowledgeModel,
   type LinkIndex,
   type ParsedNote,
 } from '@storystable/vault';
+import { PatchReview } from './PatchReview.js';
 import type {
   CredentialStatus,
   ModelCapabilities,
@@ -23,12 +25,28 @@ import {
   openrouterModels,
   previewRoute,
   agentComplete,
+  noteHash,
+  applyPatch,
 } from '../services/vault.js';
 
 interface Props {
   notes: ParsedNote[];
   linkIndex: LinkIndex | null;
   focusPath: string | null;
+  /** Vault root, needed to hash and write the target note. */
+  root: string;
+  /** Called after a proposal is applied, so the workspace reloads. */
+  onApplied: () => Promise<void>;
+}
+
+/** A proposal awaiting review. */
+interface Proposal {
+  path: string;
+  /** Note contents when the proposal was generated. */
+  before: string;
+  after: string;
+  /** Hash captured before sending; the apply is refused if it no longer matches. */
+  hash: string;
 }
 
 const POLICIES: { value: RoutingPolicy; label: string }[] = [
@@ -46,7 +64,7 @@ const PROVIDER_LABELS: Record<ProviderId, string> = {
   openrouter: 'OpenRouter',
 };
 
-export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
+export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }: Props) {
   const [provider, setProvider] = useState<ProviderId>('anthropic');
   const [status, setStatus] = useState<CredentialStatus | null>(null);
   const [keyInput, setKeyInput] = useState('');
@@ -65,6 +83,9 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
   const [usage, setUsage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [proposeEdit, setProposeEdit] = useState(false);
+  const [proposal, setProposal] = useState<Proposal | null>(null);
+  const [applied, setApplied] = useState<string | null>(null);
 
   const agent = agentById(agentId);
 
@@ -177,23 +198,60 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
       });
   }, [keyInput, provider, loadProvider]);
 
+  const focusNote = notes.find((n) => n.path === focusPath) ?? null;
+  const canPropose = focusNote !== null;
+
   const ask = useCallback(() => {
     if (!context || !agent || prompt.trim() === '') return;
     const guard = spoilerInstruction(context, agent.usesPointOfView && pov !== '' ? pov : null);
-    const system = [agent.system, guard].filter(Boolean).join('\n\n');
+
+    // In propose mode the model must return the whole revised file and
+    // nothing else, so the response can be diffed against the note.
+    const editRule =
+      proposeEdit && focusNote
+        ? [
+            `You are proposing a revision to ${focusNote.path}.`,
+            'Return the complete revised file and nothing else: no commentary,',
+            'no explanation, no code fences. Preserve the YAML frontmatter,',
+            'including fields you did not change. Change only what the request',
+            'asks for; leave the rest byte-for-byte identical.',
+          ].join(' ')
+        : null;
+
+    const system = [agent.system, guard, editRule].filter(Boolean).join('\n\n');
     const userContent = `${renderContext(context)}\n\n${prompt.trim()}`;
 
     setBusy(true);
     setError(null);
     setAnswer(null);
-    agentComplete({ model, system, messages: [{ role: 'user', content: userContent }] }, policy)
-      .then((response) => {
-        setAnswer(response.text);
+    setProposal(null);
+    setApplied(null);
+
+    // Hash before sending: this is what the apply is checked against.
+    const hashPromise =
+      proposeEdit && focusNote ? noteHash(root, focusNote.path) : Promise.resolve('');
+
+    hashPromise
+      .then(async (hash) => {
+        const response = await agentComplete(
+          { model, system, messages: [{ role: 'user', content: userContent }] },
+          policy,
+        );
         setUsage(
           `${response.model} · ${String(response.input_tokens)} in / ${String(
             response.output_tokens,
           )} out · ${response.stop_reason ?? 'no stop reason'}`,
         );
+        if (proposeEdit && focusNote) {
+          setProposal({
+            path: focusNote.path,
+            before: focusNote.source,
+            after: stripCodeFence(response.text),
+            hash,
+          });
+        } else {
+          setAnswer(response.text);
+        }
       })
       .catch((e: unknown) => {
         setError(typeof e === 'string' ? e : e instanceof Error ? e.message : String(e));
@@ -201,7 +259,25 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
       .finally(() => {
         setBusy(false);
       });
-  }, [context, agent, prompt, pov, model, policy]);
+  }, [context, agent, prompt, pov, model, policy, proposeEdit, focusNote, root]);
+
+  const apply = useCallback(() => {
+    if (!proposal) return;
+    setBusy(true);
+    setError(null);
+    applyPatch(root, proposal.path, proposal.hash, proposal.after)
+      .then(async () => {
+        setProposal(null);
+        setApplied(`Applied to ${proposal.path}.`);
+        await onApplied();
+      })
+      .catch((e: unknown) => {
+        setError(typeof e === 'string' ? e : e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => {
+        setBusy(false);
+      });
+  }, [proposal, root, onApplied]);
 
   return (
     <div className="assistant">
@@ -403,10 +479,28 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
         </>
       )}
 
+      <label className="inline propose-toggle">
+        <input
+          type="checkbox"
+          checked={proposeEdit && canPropose}
+          disabled={!canPropose}
+          onChange={(e) => {
+            setProposeEdit(e.target.checked);
+            setProposal(null);
+          }}
+        />
+        Propose an edit to this note
+        {!canPropose && <span className="hint"> — select a note first</span>}
+      </label>
+
       <textarea
         className="assistant-prompt"
         value={prompt}
-        placeholder="Ask about the selected note…"
+        placeholder={
+          proposeEdit && canPropose
+            ? 'Describe the change to make…'
+            : 'Ask about the selected note…'
+        }
         onChange={(e) => {
           setPrompt(e.target.value);
         }}
@@ -416,19 +510,38 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
           disabled={busy || prompt.trim() === '' || route === null || status?.configured !== true}
           onClick={ask}
         >
-          {busy ? 'Asking…' : 'Ask'}
+          {busy ? 'Asking…' : proposeEdit && canPropose ? 'Propose' : 'Ask'}
         </button>
       </div>
 
       {error !== null && <p className="error">{error}</p>}
+      {applied !== null && <p className="applied">{applied}</p>}
+
+      {proposal !== null && (
+        <>
+          <h3>Proposed change</h3>
+          {usage !== null && <p className="hint">{usage}</p>}
+          <PatchReview
+            path={proposal.path}
+            before={proposal.before}
+            after={proposal.after}
+            busy={busy}
+            onApply={apply}
+            onReject={() => {
+              setProposal(null);
+            }}
+          />
+        </>
+      )}
+
       {answer !== null && (
         <>
           <h3>Response</h3>
           {usage !== null && <p className="hint">{usage}</p>}
           <pre className="assistant-answer">{answer}</pre>
           <p className="hint">
-            This is a proposal. Nothing has been written to your vault — copy anything you want to
-            keep.
+            Nothing has been written to your vault — copy anything you want to keep, or use
+            &ldquo;Propose an edit&rdquo; to review it as a change.
           </p>
         </>
       )}

@@ -441,7 +441,15 @@ export function WorldWorkspace() {
             </button>
           </div>
           {assistantOpen ? (
-            <AssistantPanel notes={vault.notes} linkIndex={linkIndex} focusPath={selected} />
+            <AssistantPanel
+              notes={vault.notes}
+              linkIndex={linkIndex}
+              focusPath={selected}
+              root={vault.project.root}
+              onApplied={async () => {
+                await refreshNotes(vault.project);
+              }}
+            />
           ) : (
             <>
               {selectedNote && (

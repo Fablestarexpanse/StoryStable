@@ -80,6 +80,16 @@ export const createFolder = async (root: string, path: string): Promise<void> =>
   await call('create_folder', { root, path });
 };
 
+/** Hash of a note as it currently stands, recorded when a proposal is made. */
+export const noteHash = (root: string, path: string) => call<string>('note_hash', { root, path });
+
+/**
+ * Apply an agent proposal. Rejects with a StalePatch message if the note
+ * changed since `expectedHash` was taken.
+ */
+export const applyPatch = (root: string, path: string, expectedHash: string, contents: string) =>
+  call<string>('apply_patch', { root, path, expectedHash, contents });
+
 export const openrouterModels = () => call<ModelCapabilities[]>('openrouter_models');
 
 export const rebuildIndex = (root: string) => call<IndexStats>('rebuild_index', { root });
