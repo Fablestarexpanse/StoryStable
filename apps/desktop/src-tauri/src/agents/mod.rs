@@ -6,6 +6,7 @@
 
 pub mod anthropic;
 pub mod gateway;
+pub mod local;
 pub mod openrouter;
 pub mod secrets;
 
@@ -22,6 +23,9 @@ pub struct ChatMessage {
 /// wire shape; nothing provider-specific leaks into this contract.
 #[derive(Debug, Clone, Deserialize)]
 pub struct CompletionRequest {
+    /// Provider the caller selected. Local model ids look like first-party
+    /// ones, so this cannot be inferred reliably and is passed explicitly.
+    pub provider: Option<String>,
     pub model: Option<String>,
     pub system: Option<String>,
     pub messages: Vec<ChatMessage>,

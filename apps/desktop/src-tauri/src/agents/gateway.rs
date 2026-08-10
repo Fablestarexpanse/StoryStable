@@ -125,12 +125,12 @@ pub fn find_model(model: &str) -> Option<ModelCapabilities> {
     registry().into_iter().find(|m| m.model == model)
 }
 
-/// Which provider serves a model id.
+/// Which provider serves a model id, when the caller did not say.
 ///
-/// OpenRouter model ids are namespaced (`vendor/model`), and its catalogue is
-/// fetched at runtime rather than hard-coded, so the slash is the routing
-/// signal — a bare id belongs to a first-party provider in the static
-/// registry.
+/// Inference is a fallback only. Local models carry bare ids just like
+/// first-party ones (`llama3.2:3b`), so nothing in the string distinguishes
+/// them — callers pass the provider explicitly, and this exists for requests
+/// that predate that.
 pub fn provider_for(model: &str) -> Option<String> {
     if let Some(caps) = find_model(model) {
         return Some(caps.provider);
@@ -139,6 +139,17 @@ pub fn provider_for(model: &str) -> Option<String> {
         return Some("openrouter".to_string());
     }
     None
+}
+
+/// Privacy class for a provider whose capabilities are not in the static
+/// registry. Local servers keep content on the machine; anything else is
+/// assumed cloud, which is the safe default when we cannot prove otherwise.
+fn privacy_for_provider(provider: &str) -> PrivacyClass {
+    if super::local::is_local_provider(provider) {
+        PrivacyClass::Local
+    } else {
+        PrivacyClass::Cloud
+    }
 }
 
 /// The gateway's decision about a request, surfaced so the destination is
@@ -154,17 +165,32 @@ pub struct RouteDecision {
 }
 
 /// Resolve a request to a route, or refuse. No network call happens here.
-pub fn route(model: &str, policy: RoutingPolicy) -> Result<RouteDecision, AgentError> {
-    // Known models carry their own capabilities; an OpenRouter model comes
-    // from a runtime catalogue, so it is resolved by provider and treated as
-    // cloud — the safe assumption when capabilities are not yet known.
-    let (provider, privacy_class) = match find_model(model) {
-        Some(caps) => (caps.provider, caps.privacy_class),
-        None => {
-            let provider = provider_for(model)
-                .ok_or_else(|| AgentError::UnknownProvider(model.to_string()))?;
-            (provider, PrivacyClass::Cloud)
+///
+/// `provider` is what the caller selected; when absent it is inferred, which
+/// only works for models in the static registry or namespaced OpenRouter ids.
+pub fn route(
+    provider: Option<&str>,
+    model: &str,
+    policy: RoutingPolicy,
+) -> Result<RouteDecision, AgentError> {
+    let (provider, privacy_class) = match provider {
+        // An explicitly chosen provider wins, but its capabilities are still
+        // consulted when the model happens to be in the registry.
+        Some(chosen) => {
+            let privacy = find_model(model)
+                .filter(|caps| caps.provider == chosen)
+                .map_or_else(|| privacy_for_provider(chosen), |caps| caps.privacy_class);
+            (chosen.to_string(), privacy)
         }
+        None => match find_model(model) {
+            Some(caps) => (caps.provider, caps.privacy_class),
+            None => {
+                let inferred = provider_for(model)
+                    .ok_or_else(|| AgentError::UnknownProvider(model.to_string()))?;
+                let privacy = privacy_for_provider(&inferred);
+                (inferred, privacy)
+            }
+        },
     };
 
     if privacy_class == PrivacyClass::Cloud && !policy.allows_cloud() {
@@ -209,7 +235,7 @@ mod tests {
 
     #[test]
     fn local_only_refuses_cloud_rather_than_falling_back() {
-        let err = route("claude-opus-5", RoutingPolicy::LocalOnly).unwrap_err();
+        let err = route(None, "claude-opus-5", RoutingPolicy::LocalOnly).unwrap_err();
         assert!(matches!(err, AgentError::PolicyForbidsCloud { .. }));
     }
 
@@ -221,13 +247,13 @@ mod tests {
             RoutingPolicy::BestQuality,
             RoutingPolicy::CloudAllowed,
         ] {
-            assert!(route("claude-opus-5", policy).is_ok(), "{policy:?}");
+            assert!(route(None, "claude-opus-5", policy).is_ok(), "{policy:?}");
         }
     }
 
     #[test]
     fn route_reports_the_destination_for_display() {
-        let decision = route("claude-opus-5", RoutingPolicy::CloudAllowed).unwrap();
+        let decision = route(None, "claude-opus-5", RoutingPolicy::CloudAllowed).unwrap();
         assert_eq!(decision.privacy_class, PrivacyClass::Cloud);
         assert!(decision.rationale.contains("anthropic"));
         assert!(decision.rationale.contains("cloud_allowed"));
@@ -236,7 +262,7 @@ mod tests {
     #[test]
     fn unknown_bare_model_is_rejected_before_any_call() {
         assert!(matches!(
-            route("gpt-imaginary", RoutingPolicy::CloudAllowed),
+            route(None, "gpt-imaginary", RoutingPolicy::CloudAllowed),
             Err(AgentError::UnknownProvider(_))
         ));
     }
@@ -247,7 +273,7 @@ mod tests {
             provider_for("meta-llama/llama-4"),
             Some("openrouter".into())
         );
-        let decision = route("meta-llama/llama-4", RoutingPolicy::CloudAllowed).unwrap();
+        let decision = route(None, "meta-llama/llama-4", RoutingPolicy::CloudAllowed).unwrap();
         assert_eq!(decision.provider, "openrouter");
         assert_eq!(decision.model, "meta-llama/llama-4");
     }
@@ -262,7 +288,35 @@ mod tests {
         // Capabilities are unknown, so it must be assumed cloud rather than
         // waved through.
         assert!(matches!(
-            route("vendor/whatever", RoutingPolicy::LocalOnly),
+            route(None, "vendor/whatever", RoutingPolicy::LocalOnly),
+            Err(AgentError::PolicyForbidsCloud { .. })
+        ));
+    }
+
+    #[test]
+    fn local_providers_are_permitted_under_local_only() {
+        // The whole point of the policy: with a local server selected,
+        // content never leaves the machine, so the request proceeds.
+        for provider in ["ollama", "lmstudio"] {
+            let decision = route(Some(provider), "llama3.2:3b", RoutingPolicy::LocalOnly)
+                .unwrap_or_else(|e| panic!("{provider} should be allowed: {e}"));
+            assert_eq!(decision.privacy_class, PrivacyClass::Local);
+            assert!(decision.rationale.contains("nothing leaves this machine"));
+        }
+    }
+
+    #[test]
+    fn a_bare_local_model_id_routes_only_when_the_provider_is_explicit() {
+        // "llama3.2:3b" has no slash and is not in the registry, so inference
+        // cannot place it — the caller must say which provider serves it.
+        assert!(route(None, "llama3.2:3b", RoutingPolicy::CloudAllowed).is_err());
+        assert!(route(Some("ollama"), "llama3.2:3b", RoutingPolicy::CloudAllowed).is_ok());
+    }
+
+    #[test]
+    fn an_explicit_cloud_provider_is_still_blocked_by_local_only() {
+        assert!(matches!(
+            route(Some("openrouter"), "vendor/x", RoutingPolicy::LocalOnly),
             Err(AgentError::PolicyForbidsCloud { .. })
         ));
     }

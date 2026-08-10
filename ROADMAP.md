@@ -150,15 +150,15 @@ Notes
 
 ## Phase 3 — Agents
 
-Status: IN PROGRESS
+Status: DONE
 Owner: agent
 
 Acceptance criteria
 
 - [x] Model Gateway with routing presets (LocalOnly refuses cloud; no silent
       fallback; route decision surfaced before sending)
-- [ ] Local and cloud provider adapters — Anthropic done; Ollama/LM Studio
-      pending, so LocalOnly currently has no provider to route to
+- [x] Local and cloud provider adapters (Anthropic, OpenRouter, Ollama,
+      LM Studio)
 - [x] Capability registry
 - [x] Context Inspector (per-item toggles, token estimate, withheld facts)
 - [x] `AgentPatch` propose/review/apply with stale-patch detection
@@ -184,8 +184,17 @@ Notes
   diffed for review, and applying re-checks the hash and refuses if the file
   changed in the meantime. The model returns the whole revised file, and an
   accidental code fence around it is stripped rather than written into the
-  note. Remaining for Phase 3: local provider adapters (Ollama / LM Studio),
-  without which Local Only has no provider to route to.
+  note.
+- 2026-08-10: third increment completes Phase 3. Ollama and LM Studio are
+  reachable through their shared OpenAI-compatible endpoint, classified
+  Local, so the Local Only policy now has somewhere to route instead of
+  refusing everything. Routing also became explicit: local model ids look
+  exactly like first-party ones (`llama3.2:3b`), so the provider is passed
+  with the request rather than inferred from the id. Inference remains only
+  as a fallback for callers that do not supply one.
+  Known gaps carried forward: local endpoints are the well-known defaults
+  and not yet configurable, and local servers report no context window or
+  pricing, so those show as unknown rather than invented values.
 
 ---
 

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use agents::gateway::{self, ModelCapabilities, RouteDecision, RoutingPolicy};
 use agents::secrets::{self, CredentialStatus};
-use agents::{anthropic, openrouter, AgentError, CompletionRequest, CompletionResponse};
+use agents::{anthropic, local, openrouter, AgentError, CompletionRequest, CompletionResponse};
 
 use tauri::Manager;
 use vault::assets::{self, Attachment};
@@ -165,8 +165,18 @@ fn model_registry() -> Vec<ModelCapabilities> {
 /// Resolve a route without calling the provider — used by the context
 /// inspector to show the destination before the user commits.
 #[tauri::command]
-fn preview_route(model: String, policy: RoutingPolicy) -> Result<RouteDecision, AgentError> {
-    gateway::route(&model, policy)
+fn preview_route(
+    provider: Option<String>,
+    model: String,
+    policy: RoutingPolicy,
+) -> Result<RouteDecision, AgentError> {
+    gateway::route(provider.as_deref(), &model, policy)
+}
+
+/// List models offered by a local server, so LocalOnly has something to pick.
+#[tauri::command]
+fn local_models(provider: String) -> Result<Vec<ModelCapabilities>, AgentError> {
+    local::list_models(&provider)
 }
 
 /// Fetch OpenRouter's live catalogue so any checkpoint the account can reach
@@ -187,11 +197,15 @@ fn agent_complete(
         .unwrap_or_else(|| anthropic::DEFAULT_MODEL.to_string());
     // Policy is enforced before any network call, and the route names the
     // provider that will serve the request.
-    let decision = gateway::route(&model, policy)?;
+    let decision = gateway::route(request.provider.as_deref(), &model, policy)?;
     let mut request = request;
     request.model = Some(model);
 
-    match decision.provider.as_str() {
+    let provider = decision.provider.as_str();
+    if local::is_local_provider(provider) {
+        return local::complete(provider, &request);
+    }
+    match provider {
         openrouter::PROVIDER => openrouter::complete(&request),
         anthropic::PROVIDER => anthropic::complete(&request),
         other => Err(AgentError::UnknownProvider(other.to_string())),
@@ -240,6 +254,7 @@ pub fn run() {
             clear_provider_key,
             model_registry,
             openrouter_models,
+            local_models,
             preview_route,
             agent_complete,
             create_folder,

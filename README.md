@@ -57,9 +57,12 @@ attachment tracking.
 Four read-only, review-gated agents — Writing Partner, Canon Keeper, Character
 Director, Continuity Supervisor. None is bound to a model.
 
-- **Providers:** Anthropic and OpenRouter, each with its own key in the OS
-  credential manager. OpenRouter's model catalogue is fetched live, so any
-  checkpoint your account can reach is selectable.
+- **Providers:** Anthropic, OpenRouter, and local servers (Ollama, LM Studio).
+  Cloud keys live in the OS credential manager; local servers need none.
+  OpenRouter's catalogue is fetched live, so any checkpoint your account can
+  reach is selectable, and local catalogues come from the running server.
+  Choosing a local provider means project content never leaves the machine —
+  which is what makes the **Local only** routing policy meaningful.
 - **Context Inspector:** every item that will be sent, with token estimates and
   per-item toggles.
 - **Spoiler guard:** set a point-of-view character and facts that character
@@ -162,17 +165,17 @@ identity. See [docs/data/project-format.md](docs/data/project-format.md).
 
 ## Status by phase
 
-| Phase                       | State                                                                         |
-| --------------------------- | ----------------------------------------------------------------------------- |
-| 0 — Repository & guardrails | Done                                                                          |
-| 1 — Vault foundation        | Done                                                                          |
-| 2 — Structured world        | Done                                                                          |
-| 3 — Agents                  | In progress — gateway, providers, and context done; patch write path underway |
-| 4 — Story                   | Not started                                                                   |
-| 5 — Studio / images         | Not started                                                                   |
-| 6 — MiniMax H3              | Not started                                                                   |
-| 7 — Cut                     | Not started                                                                   |
-| 8 — Intelligence / polish   | Not started                                                                   |
+| Phase                       | State       |
+| --------------------------- | ----------- |
+| 0 — Repository & guardrails | Done        |
+| 1 — Vault foundation        | Done        |
+| 2 — Structured world        | Done        |
+| 3 — Agents                  | Done        |
+| 4 — Story                   | Not started |
+| 5 — Studio / images         | Not started |
+| 6 — MiniMax H3              | Not started |
+| 7 — Cut                     | Not started |
+| 8 — Intelligence / polish   | Not started |
 
 ---
 

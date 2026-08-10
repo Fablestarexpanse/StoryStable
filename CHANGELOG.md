@@ -17,6 +17,13 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 3 (third increment, completes Phase 3): local providers. Ollama and
+  LM Studio are reachable through their shared OpenAI-compatible endpoint and
+  classified Local, so the Local Only routing policy now routes instead of
+  refusing everything, and no credential is involved. Provider selection is
+  now explicit on the request — local model ids are indistinguishable from
+  first-party ones, so inferring from the id was not sound. Connection
+  failures name the server and address rather than surfacing a socket error.
 - Phase 3 (second increment): agents can propose edits. The target note's
   hash is captured before the request, the response is shown as a line diff
   with collapsed unchanged context, and applying re-checks the hash — a note

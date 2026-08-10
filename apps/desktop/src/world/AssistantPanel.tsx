@@ -23,6 +23,7 @@ import {
   clearProviderKey,
   modelRegistry,
   openrouterModels,
+  localModels,
   previewRoute,
   agentComplete,
   noteHash,
@@ -57,12 +58,18 @@ const POLICIES: { value: RoutingPolicy; label: string }[] = [
   { value: 'cloud_allowed', label: 'Cloud allowed' },
 ];
 
-type ProviderId = 'anthropic' | 'openrouter';
+type ProviderId = 'anthropic' | 'openrouter' | 'ollama' | 'lmstudio';
 
 const PROVIDER_LABELS: Record<ProviderId, string> = {
   anthropic: 'Anthropic',
   openrouter: 'OpenRouter',
+  ollama: 'Ollama (local)',
+  lmstudio: 'LM Studio (local)',
 };
+
+/** Local servers need no credential — the key form is hidden for them. */
+const LOCAL_PROVIDERS: ProviderId[] = ['ollama', 'lmstudio'];
+const isLocalProvider = (id: ProviderId) => LOCAL_PROVIDERS.includes(id);
 
 export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }: Props) {
   const [provider, setProvider] = useState<ProviderId>('anthropic');
@@ -92,6 +99,23 @@ export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }:
   // Credentials and catalogue are per-provider, so both reload on switch.
   const loadProvider = useCallback((id: ProviderId) => {
     setCatalogueError(null);
+    if (isLocalProvider(id)) {
+      // No credential involved; the catalogue comes from the running server.
+      setStatus({ provider: id, configured: true, hint: null });
+      localModels(id).then(
+        (all) => {
+          setModels(all);
+          setModel((current) =>
+            all.some((m) => m.model === current) ? current : (all[0]?.model ?? ''),
+          );
+        },
+        (e: unknown) => {
+          setModels([]);
+          setCatalogueError(typeof e === 'string' ? e : String(e));
+        },
+      );
+      return;
+    }
     providerStatus(id).then(setStatus, () => {
       setStatus(null);
     });
@@ -131,7 +155,12 @@ export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }:
 
   // The route is resolved before sending so the destination is never implied.
   useEffect(() => {
-    previewRoute(model, policy).then(
+    if (model === '') {
+      setRoute(null);
+      setRouteError(null);
+      return;
+    }
+    previewRoute(provider, model, policy).then(
       (decision) => {
         setRoute(decision);
         setRouteError(null);
@@ -141,7 +170,7 @@ export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }:
         setRouteError(typeof e === 'string' ? e : String(e));
       },
     );
-  }, [model, policy]);
+  }, [provider, model, policy]);
 
   const knowledge = useMemo(() => buildKnowledgeModel(notes), [notes]);
   const characters = knowledge.observers.filter((o) => o !== 'audience');
@@ -234,7 +263,7 @@ export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }:
     hashPromise
       .then(async (hash) => {
         const response = await agentComplete(
-          { model, system, messages: [{ role: 'user', content: userContent }] },
+          { provider, model, system, messages: [{ role: 'user', content: userContent }] },
           policy,
         );
         setUsage(
@@ -259,7 +288,7 @@ export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }:
       .finally(() => {
         setBusy(false);
       });
-  }, [context, agent, prompt, pov, model, policy, proposeEdit, focusNote, root]);
+  }, [context, agent, prompt, pov, provider, model, policy, proposeEdit, focusNote, root]);
 
   const apply = useCallback(() => {
     if (!proposal) return;
@@ -395,7 +424,11 @@ export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }:
 
       {agent && <p className="hint">{agent.purpose}</p>}
 
-      {status?.configured !== true ? (
+      {isLocalProvider(provider) ? (
+        <p className="hint">
+          Runs on this machine — no API key, and project content never leaves it.
+        </p>
+      ) : status?.configured !== true ? (
         <div className="key-setup">
           <p className="hint">
             A {PROVIDER_LABELS[provider]} API key is required. It is stored in the OS credential
@@ -435,7 +468,11 @@ export function AssistantPanel({ notes, linkIndex, focusPath, root, onApplied }:
           </button>
         </p>
       )}
-      {catalogueError !== null && <p className="hint">Model list unavailable: {catalogueError}</p>}
+      {catalogueError !== null && (
+        <p className={isLocalProvider(provider) ? 'error' : 'hint'}>
+          Model list unavailable: {catalogueError}
+        </p>
+      )}
 
       {routeError !== null && <p className="error">Routing refused: {routeError}</p>}
       {route && (

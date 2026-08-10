@@ -92,6 +92,10 @@ export const applyPatch = (root: string, path: string, expectedHash: string, con
 
 export const openrouterModels = () => call<ModelCapabilities[]>('openrouter_models');
 
+/** Models offered by a local server (ollama / lmstudio). */
+export const localModels = (provider: string) =>
+  call<ModelCapabilities[]>('local_models', { provider });
+
 export const rebuildIndex = (root: string) => call<IndexStats>('rebuild_index', { root });
 
 export const searchNotes = (root: string, query: string) =>
@@ -157,11 +161,12 @@ export const clearProviderKey = (provider: string) =>
 
 export const modelRegistry = () => call<ModelCapabilities[]>('model_registry');
 
-export const previewRoute = (model: string, policy: RoutingPolicy) =>
-  call<RouteDecision>('preview_route', { model, policy });
+export const previewRoute = (provider: string, model: string, policy: RoutingPolicy) =>
+  call<RouteDecision>('preview_route', { provider, model, policy });
 
 export const agentComplete = (
   request: {
+    provider?: string;
     model?: string;
     system?: string;
     messages: { role: string; content: string }[];
