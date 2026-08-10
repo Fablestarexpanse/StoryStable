@@ -1,13 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   parseFountain,
+  parseNote,
   sceneSummaries,
   speakingCharacters,
+  linkScenes,
+  storyDiagnostics,
+  createSceneCapsule,
+  formatValue,
+  type ParsedNote,
   type ScreenplayElement,
 } from '@storystable/vault';
 import type { ProjectInfo } from '../services/vault.js';
 import {
   listScreenplays,
+  listNotes,
   readNote,
   writeNote,
   recentProjects,
@@ -18,6 +25,17 @@ import {
 import { MarkdownEditor } from '../world/MarkdownEditor.js';
 
 const DEFAULT_SCREENPLAY = 'Story/master.fountain';
+
+/** The capsule fields worth seeing beside the scene, in reading order. */
+const CAPSULE_FIELDS = [
+  'intent',
+  'character_ids',
+  'location_ids',
+  'start_state_id',
+  'end_state_id',
+  'protected_information',
+  'status',
+] as const;
 
 const STARTER = [
   'Title: Untitled',
@@ -50,6 +68,7 @@ export function StoryWorkspace() {
   const [selectedScene, setSelectedScene] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [notes, setNotes] = useState<ParsedNote[]>([]);
 
   // Reuse the most recent project; STORY has no launcher of its own yet.
   useEffect(() => {
@@ -104,6 +123,46 @@ export function StoryWorkspace() {
   const screenplay = useMemo(() => parseFountain(text), [text]);
   const scenes = useMemo(() => sceneSummaries(screenplay), [screenplay]);
   const characters = useMemo(() => speakingCharacters(screenplay), [screenplay]);
+  const links = useMemo(() => linkScenes(screenplay, notes), [screenplay, notes]);
+  const diagnostics = useMemo(() => storyDiagnostics(screenplay, notes), [screenplay, notes]);
+
+  const capsuleFor = (line: number) => links.find((l) => l.scene?.line === line)?.capsule ?? null;
+  const selected = scenes.find((s) => s.line === selectedScene) ?? null;
+  const selectedCapsule = selectedScene === null ? null : capsuleFor(selectedScene);
+
+  const loadNotes = useCallback(async (root: string) => {
+    const paths = await listNotes(root);
+    setNotes(
+      await Promise.all(
+        paths.map(async (p) => parseNote({ path: p, source: await readNote(root, p) })),
+      ),
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!project) return;
+    void loadNotes(project.root);
+  }, [project, loadNotes]);
+
+  const addCapsule = () => {
+    if (!project || !selected) return;
+    const order = scenes.indexOf(selected) + 1;
+    const capsule = createSceneCapsule(selected, order, new Date().toISOString());
+    if (notes.some((n) => n.path === capsule.path)) {
+      setError(`${capsule.path} already exists`);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    writeNote(project.root, capsule.path, capsule.source)
+      .then(() => loadNotes(project.root))
+      .catch((e: unknown) => {
+        setError(typeof e === 'string' ? e : e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => {
+        setBusy(false);
+      });
+  };
 
   const save = () => {
     if (!project || draft === null) return;
@@ -206,6 +265,9 @@ export function StoryWorkspace() {
                     )}
                     {scene.heading}
                   </span>
+                  {capsuleFor(scene.line) !== null && (
+                    <span className="capsule-dot" title="Has a Scene Capsule" />
+                  )}
                   {scene.characters.length > 0 && (
                     <span className="snippet">{scene.characters.join(', ')}</span>
                   )}
@@ -280,18 +342,65 @@ export function StoryWorkspace() {
         </section>
 
         <aside className="inspector">
-          <h3>Screenplay</h3>
-          <ul className="attachments">
-            <li>{scenes.length} scenes</li>
-            <li>{characters.length} speaking characters</li>
-            <li>
-              {screenplay.elements.filter((e) => e.kind === 'dialogue').length} dialogue lines
-            </li>
-            <li>{screenplay.elements.filter((e) => e.kind === 'note').length} notes</li>
-          </ul>
-          <p className="hint">
-            The file stays valid Fountain — edit it here or in any text editor.
-          </p>
+          {selected ? (
+            <>
+              <h3>Scene Capsule</h3>
+              {selectedCapsule ? (
+                <>
+                  <p className="capsule-path">{selectedCapsule.path}</p>
+                  <dl className="properties">
+                    {CAPSULE_FIELDS.map((field) => (
+                      <div key={field}>
+                        <dt>{field.replace(/_/g, ' ')}</dt>
+                        <dd>{formatValue(selectedCapsule.frontmatter[field]) || '—'}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <p className="hint">Edit the capsule in WORLD — it is an ordinary note.</p>
+                </>
+              ) : (
+                <>
+                  <p className="hint">
+                    No capsule for <strong>{selected.heading}</strong>. A capsule carries the
+                    scene&rsquo;s purpose and state change; the screenplay keeps the prose.
+                  </p>
+                  <button disabled={busy} onClick={addCapsule}>
+                    Create Scene Capsule
+                  </button>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <h3>Screenplay</h3>
+              <ul className="attachments">
+                <li>{scenes.length} scenes</li>
+                <li>{characters.length} speaking characters</li>
+                <li>
+                  {screenplay.elements.filter((e) => e.kind === 'dialogue').length} dialogue lines
+                </li>
+                <li>{screenplay.elements.filter((e) => e.kind === 'note').length} notes</li>
+              </ul>
+              <p className="hint">
+                The file stays valid Fountain — edit it here or in any text editor.
+              </p>
+            </>
+          )}
+
+          <h3>Diagnostics ({diagnostics.length})</h3>
+          {diagnostics.length === 0 ? (
+            <p className="hint">Nothing to report.</p>
+          ) : (
+            <ul className="diagnostics">
+              {diagnostics.map((d, i) => (
+                <li key={i} className={`diag diag-${d.severity}`}>
+                  <span className="diag-severity">{d.severity}</span>
+                  <span className="diag-where">{d.heading ?? d.path}</span>
+                  <span className="diag-message">{d.message}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </aside>
       </div>
     </div>

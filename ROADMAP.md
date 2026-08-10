@@ -206,15 +206,16 @@ Owner: agent
 Acceptance criteria
 
 - [ ] Sequences — parsed from Fountain sections; no durable Sequence object yet
-- [ ] Scenes and Scene Capsules — scenes parse from the screenplay; the
-      Scene Capsule object and its editor are pending
+- [x] Scenes and Scene Capsules — capsules link to scenes, are creatable from
+      a scene, and are inspected beside it; a dedicated capsule editor is still
+      pending (they are edited as notes in WORLD for now)
 - [x] State snapshots (delivered in Phase 2)
 - [ ] Beats
 - [ ] Moments
 - [x] Fountain screenplay editor with raw mode
 - [ ] Branches and comparison
 - [x] Reveal/knowledge tracking (delivered in Phase 2)
-- [ ] Story diagnostics (warnings, never hard gates)
+- [x] Story diagnostics (warnings, never hard gates)
 
 Notes
 
@@ -229,6 +230,14 @@ Notes
   shouted line of action, and centered text from a transition.
 - The vault now writes `.fountain` as well as `.md`; screenplays are listed
   separately so the WORLD tree stays Markdown-only.
+- 2026-08-10: second increment. Scene Capsules. The linker is deliberately
+  forgiving about how a capsule claims a scene (number, explicit heading, or
+  title) but strict about claiming at most one, and it surfaces capsules that
+  match nothing rather than hiding them — a renamed scene should not silently
+  orphan work. Diagnostics resolve speaker cue names through note ids and
+  titles before reporting an unlisted speaker, so the common case where the
+  screenplay says LAN and the capsule says `char_lan` is not a false positive.
+  24 tests.
 
 ---
 

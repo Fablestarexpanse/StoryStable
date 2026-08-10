@@ -17,6 +17,17 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 4 (second increment): Scene Capsules. A capsule is an ordinary
+  `type: scene` note carrying the production layer around a scene — purpose,
+  state change, protected information — while the screenplay keeps the prose.
+  Capsules claim a scene by `scene_number`, explicit `heading`, or a title
+  matching the heading, case-insensitively and at most one scene each; a
+  capsule matching no scene is surfaced rather than dropped, because a renamed
+  or cut scene should not silently lose work. Story diagnostics (spec §6.8)
+  report missing capsules, orphaned capsules, scenes where nothing changes,
+  speakers absent from `character_ids` (resolved through ids and titles before
+  complaining), and missing intent — all as warnings or advisories, never as
+  blockers, since an unfinished scene is a normal state of work.
 - Phase 4 (first increment): STORY workspace with a Fountain screenplay
   parser and editor. The `.fountain` file stays the source of truth and the
   formatted screenplay view is a projection of it, with raw mode always

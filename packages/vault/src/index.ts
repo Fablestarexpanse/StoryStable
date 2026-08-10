@@ -34,6 +34,8 @@ export {
   speakingCharacters,
 } from './fountain.js';
 export type { Screenplay, ScreenplayElement, ElementKind, SceneSummary } from './fountain.js';
+export { linkScenes, sceneCapsules, storyDiagnostics, createSceneCapsule } from './scenes.js';
+export type { SceneLink, StoryDiagnostic } from './scenes.js';
 export { diffLines, diffStats, collapseContext, stripCodeFence } from './diff.js';
 export type { DiffLine, DiffOp, DiffStats, DiffChunk } from './diff.js';
 export { buildFileTree, folderPaths, ancestorsOf } from './tree.js';

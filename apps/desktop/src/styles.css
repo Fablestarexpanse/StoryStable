@@ -1112,6 +1112,67 @@ button.note.active {
   font-variant-numeric: tabular-nums;
 }
 
+/* A scene that has a capsule is marked, not labelled — the list stays scannable. */
+.capsule-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.capsule-path {
+  font-size: 0.72rem;
+  opacity: 0.6;
+  font-family: ui-monospace, monospace;
+  word-break: break-all;
+  margin: 0 0 0.6rem;
+}
+
+.diagnostics {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.diag {
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.76rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  border-left: 3px solid transparent;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.diag-warning {
+  border-left-color: var(--warning, #d08b26);
+}
+
+.diag-advisory {
+  border-left-color: color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.diag-severity {
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  opacity: 0.65;
+}
+
+.diag-where {
+  font-weight: 600;
+}
+
+.diag-message {
+  opacity: 0.8;
+}
+
 /* Screenplay layout follows standard script proportions rather than prose. */
 .screenplay {
   max-width: 60ch;
