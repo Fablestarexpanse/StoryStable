@@ -1,4 +1,6 @@
 import type { LinkIndex, ParsedNote } from './links.js';
+import { buildRelationshipIndex } from './relationships.js';
+import { buildTimeline } from './timeline.js';
 
 export type HealthSeverity = 'error' | 'warning' | 'advisory';
 
@@ -110,6 +112,35 @@ export function computeHealth(
         message: `id "${id}" used by ${paths.join(', ')}`,
       });
     }
+  }
+
+  // Relationship integrity (spec §5.6).
+  const relationships = buildRelationshipIndex(notes);
+  for (const rel of relationships.unresolved) {
+    findings.push({
+      severity: 'warning',
+      category: 'broken-relationship',
+      path: rel.fromPath,
+      message: `relationship "${rel.relation}" points at unknown target "${rel.targetId}"`,
+    });
+  }
+  for (const { relationship, expected } of relationships.missingReciprocal) {
+    findings.push({
+      severity: 'advisory',
+      category: 'one-sided-relationship',
+      path: relationship.fromPath,
+      message: `declares "${relationship.relation}" toward ${relationship.targetId}, which does not declare "${expected}" back`,
+    });
+  }
+
+  // Chronology conflicts (spec §5.5).
+  for (const conflict of buildTimeline(notes).conflicts) {
+    findings.push({
+      severity: conflict.severity,
+      category: 'chronology',
+      path: conflict.path,
+      message: conflict.message,
+    });
   }
 
   const order: Record<HealthSeverity, number> = { error: 0, warning: 1, advisory: 2 };

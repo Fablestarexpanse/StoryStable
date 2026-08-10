@@ -17,6 +17,14 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 2 (second increment): typed directional relationships parsed from
+  frontmatter, resolved by stable id or title, with symmetric and inverse
+  reciprocity checks reported as Project Health advisories; relationships
+  shown in the inspector in both directions. World timeline with lenient
+  fictional-date parsing (bare years, ISO dates mapped onto the same year
+  scale, `c.`/`~`/`?` uncertainty, ranges, BC suffixes), lifespan and faction
+  spans, era filtering, and chronology conflict detection that softens to
+  advisory when the underlying date is uncertain.
 - Phase 2 (first increment): browser-safe schema validation
   (`@storystable/schemas/browser`) backed by static schema imports, with a
   drift test that fails if the static list or its content diverges from the

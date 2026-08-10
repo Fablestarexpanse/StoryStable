@@ -2,6 +2,15 @@ export { parseFrontmatter, serializeNote, setFrontmatterValue } from './frontmat
 export type { FrontmatterResult } from './frontmatter.js';
 export { ENTITY_TEMPLATES, templateFor, createEntity, entityId, slugify } from './entities.js';
 export type { EntityTemplate, EntityType, NewEntity } from './entities.js';
+export { buildRelationshipIndex, inverseRelation, RELATION_TYPES } from './relationships.js';
+export type {
+  Relationship,
+  RelationshipIndex,
+  RelationType,
+  RelationStatus,
+} from './relationships.js';
+export { buildTimeline, parseWorldDate, parseDateRange } from './timeline.js';
+export type { Timeline, TimelineEvent, TimelineConflict, WorldDate } from './timeline.js';
 export { collectColumns, buildRows, groupRows, formatValue, rowsToCsv } from './properties.js';
 export type {
   PropertyColumn,

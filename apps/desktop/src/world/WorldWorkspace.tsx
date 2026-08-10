@@ -4,12 +4,14 @@ import {
   buildLinkIndex,
   buildGraph,
   computeHealth,
+  buildRelationshipIndex,
   type ParsedNote,
 } from '@storystable/vault';
 import { GraphView } from './GraphView.js';
 import { HealthView } from './HealthView.js';
 import { CanvasView } from './CanvasView.js';
 import { PropertiesView } from './PropertiesView.js';
+import { TimelineView } from './TimelineView.js';
 import type { Attachment, ProjectInfo, RecentProject, SearchHit } from '../services/vault.js';
 import {
   createProject,
@@ -53,7 +55,9 @@ export function WorldWorkspace() {
   const [draft, setDraft] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const [view, setView] = useState<'notes' | 'table' | 'graph' | 'canvas' | 'health'>('notes');
+  const [view, setView] = useState<'notes' | 'table' | 'graph' | 'timeline' | 'canvas' | 'health'>(
+    'notes',
+  );
   const [recents, setRecents] = useState<RecentProject[]>([]);
 
   const refreshNotes = useCallback(async (project: ProjectInfo) => {
@@ -161,8 +165,15 @@ export function WorldWorkspace() {
         : [],
     [vault, linkIndex],
   );
+  const relationships = useMemo(
+    () => (vault ? buildRelationshipIndex(vault.notes) : null),
+    [vault],
+  );
   const selectedNote = vault?.notes.find((n) => n.path === selected) ?? null;
   const backlinks = selected && linkIndex ? (linkIndex.backlinks.get(selected) ?? []) : [];
+  const outgoingRels = selected && relationships ? (relationships.byPath.get(selected) ?? []) : [];
+  const incomingRels =
+    selected && relationships ? (relationships.incoming.get(selected) ?? []) : [];
 
   const selectNote = useCallback((path: string) => {
     setSelected(path);
@@ -280,7 +291,7 @@ export function WorldWorkspace() {
       <aside className="navigator">
         <div className="project-name">{vault.project.name}</div>
         <div className="view-switch">
-          {(['notes', 'table', 'graph', 'canvas', 'health'] as const).map((v) => (
+          {(['notes', 'table', 'graph', 'timeline', 'canvas', 'health'] as const).map((v) => (
             <button
               key={v}
               className={view === v ? 'view active' : 'view'}
@@ -350,6 +361,8 @@ export function WorldWorkspace() {
               await refreshNotes(vault.project);
             }}
           />
+        ) : view === 'timeline' ? (
+          <TimelineView notes={vault.notes} onOpen={selectNote} />
         ) : view === 'graph' && graph ? (
           <GraphView graph={graph} onOpen={selectNote} />
         ) : view === 'canvas' ? (
@@ -400,6 +413,46 @@ export function WorldWorkspace() {
                 <li key={i}>{l.target || `#${l.heading ?? ''}`}</li>
               ))}
             </ul>
+            {(outgoingRels.length > 0 || incomingRels.length > 0) && (
+              <>
+                <h3>Relationships</h3>
+                <ul className="relationships">
+                  {outgoingRels.map((r, i) => (
+                    <li key={`out-${String(i)}`}>
+                      <span className="rel-type">{r.relation}</span>
+                      {r.toPath ? (
+                        <button
+                          className="note"
+                          onClick={() => {
+                            if (r.toPath) selectNote(r.toPath);
+                          }}
+                        >
+                          {r.targetId}
+                        </button>
+                      ) : (
+                        <span className="rel-broken" title="target not found">
+                          {r.targetId}
+                        </span>
+                      )}
+                      {r.status !== 'current' && <span className="rel-status">{r.status}</span>}
+                    </li>
+                  ))}
+                  {incomingRels.map((r, i) => (
+                    <li key={`in-${String(i)}`} className="rel-incoming">
+                      <span className="rel-type">← {r.relation}</span>
+                      <button
+                        className="note"
+                        onClick={() => {
+                          selectNote(r.fromPath);
+                        }}
+                      >
+                        {r.fromPath}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
             <h3>Backlinks</h3>
             <ul>
               {backlinks.map((b) => (

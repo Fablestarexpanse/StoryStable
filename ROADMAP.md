@@ -109,9 +109,12 @@ Acceptance criteria
 - [x] Entity templates (11 built-in types, schema-valid by construction)
 - [x] Property views writing back to frontmatter (table with filter/sort/
       group/columns/CSV; card view pending)
-- [ ] Typed, directional relationships
-- [ ] World timeline and events
-- [ ] Canon status and conflict indicators
+- [x] Typed, directional relationships (resolution by id/title, reciprocity
+      checks, inspector display)
+- [x] World timeline and events (lenient fictional-date parsing, spans,
+      eras, chronology conflict warnings)
+- [ ] Canon status and conflict indicators — canon_level is authored and
+      validated; dedicated indicators still pending
 - [x] Reference attachments (delivered in Phase 1)
 - [ ] Truth / character knowledge / audience knowledge model
 
@@ -123,6 +126,14 @@ Notes
   `schemas/` directory. Frontmatter edits go through a yaml Document so key
   order and comments survive. Property table supports inline editing,
   filtering, sorting, grouping, column selection, and CSV export.
+- 2026-08-09: second increment. Typed relationships resolve by frontmatter
+  `id` or title, with symmetric/inverse reciprocity checks surfaced as
+  Project Health advisories (rumored and custom relations are exempt).
+  Timeline parses invented calendars leniently — bare years, ISO dates on the
+  same year scale, `c.`/`~`/`?` uncertainty, ranges, BC suffixes — and keeps
+  unparseable dates as visible unordered labels instead of dropping them.
+  Chronology conflicts downgrade to advisory when the lifespan date is
+  itself uncertain.
 
 ---
 
