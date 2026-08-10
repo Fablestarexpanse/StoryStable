@@ -15,8 +15,42 @@ export interface HealthFinding {
  * Index-level checks (SQLite integrity, note counts) come from the Rust
  * side and are merged by the caller.
  */
-export function computeHealth(notes: ParsedNote[], linkIndex: LinkIndex): HealthFinding[] {
+export function computeHealth(
+  notes: ParsedNote[],
+  linkIndex: LinkIndex,
+  /** Root-relative paths of non-Markdown vault files, for embed checking. */
+  attachmentPaths: readonly string[] = [],
+): HealthFinding[] {
   const findings: HealthFinding[] = [];
+
+  // Embeds pointing at media that is not in the vault.
+  if (attachmentPaths.length > 0 || notes.some((n) => n.links.some((l) => l.embed))) {
+    const known = new Set<string>();
+    for (const path of attachmentPaths) {
+      known.add(path.toLowerCase());
+      const stem = path.split('/').pop();
+      if (stem !== undefined) known.add(stem.toLowerCase());
+    }
+    const noteNames = new Set<string>();
+    for (const note of notes) {
+      noteNames.add(note.path.toLowerCase());
+      noteNames.add(note.stem.toLowerCase());
+      noteNames.add(note.title.toLowerCase());
+    }
+    for (const note of notes) {
+      for (const link of note.links) {
+        if (!link.embed || link.target === '') continue;
+        const target = link.target.toLowerCase();
+        if (known.has(target) || noteNames.has(target)) continue;
+        findings.push({
+          severity: 'warning',
+          category: 'missing-embed',
+          path: note.path,
+          message: `embedded file not found: ![[${link.target}]]`,
+        });
+      }
+    }
+  }
 
   for (const note of notes) {
     for (const error of note.frontmatterErrors) {
@@ -32,6 +66,8 @@ export function computeHealth(notes: ParsedNote[], linkIndex: LinkIndex): Health
   for (const { from, link } of linkIndex.unresolved) {
     // Heading-only links ([[#Section]]) are intra-note references, not broken.
     if (link.target === '') continue;
+    // Embeds are reported by the missing-embed check above, not twice.
+    if (link.embed) continue;
     findings.push({
       severity: 'warning',
       category: 'broken-link',

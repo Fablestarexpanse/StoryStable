@@ -5,6 +5,7 @@
 //! - writes are atomic (temp file → flush → rename)
 //! - user-authored durable content lives outside `.project/`
 
+pub mod assets;
 pub mod atomic;
 pub mod index_db;
 pub mod paths;

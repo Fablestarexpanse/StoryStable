@@ -26,6 +26,12 @@ export interface IndexHealth {
   integrity_ok: boolean;
 }
 
+export interface Attachment {
+  path: string;
+  kind: string;
+  size: number;
+}
+
 export const createProject = (root: string, name: string) =>
   invoke<ProjectInfo>('create_project', { root, name });
 
@@ -49,6 +55,17 @@ export const watchProject = async (root: string): Promise<void> => {
 };
 
 export const indexHealth = (root: string) => invoke<IndexHealth>('index_health', { root });
+
+export const listAttachments = (root: string) => invoke<Attachment[]>('list_attachments', { root });
+
+export const listCanvases = (root: string) => invoke<string[]>('list_canvases', { root });
+
+export const readCanvas = (root: string, path: string) =>
+  invoke<string>('read_canvas', { root, path });
+
+export const writeCanvas = async (root: string, path: string, contents: string): Promise<void> => {
+  await invoke('write_canvas', { root, path, contents });
+};
 
 /** Subscribe to watcher notifications; payload is the changed note paths. */
 export const onVaultChanged = (handler: (paths: string[]) => void): Promise<UnlistenFn> =>

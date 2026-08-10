@@ -446,6 +446,156 @@ button.note.active {
   vertical-align: top;
 }
 
+.attachments {
+  font-size: 0.78rem;
+}
+
+.attachments li {
+  padding: 0.2rem 0;
+  word-break: break-all;
+}
+
+.attachments .size {
+  opacity: 0.5;
+  margin-left: 0.4rem;
+}
+
+.badge.kind-image {
+  background: color-mix(in srgb, #4cc38a 22%, transparent);
+}
+
+.badge.kind-video {
+  background: color-mix(in srgb, #b98cf2 22%, transparent);
+}
+
+.badge.kind-audio {
+  background: color-mix(in srgb, #f2b64c 22%, transparent);
+}
+
+.badge.kind-canvas {
+  background: color-mix(in srgb, #7896ff 22%, transparent);
+}
+
+/* Canvas view */
+
+.canvas-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+
+.canvas-toolbar .spacer {
+  flex: 1;
+}
+
+.canvas-toolbar button,
+.canvas-toolbar select {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+
+.canvas-toolbar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.canvas-toolbar .zoom {
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.canvas-surface {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 6px;
+  background-image: radial-gradient(
+    color-mix(in srgb, currentColor 14%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.canvas-plane {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.canvas-node {
+  position: absolute;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, Canvas 92%, currentColor 8%);
+  padding: 0.5rem 0.6rem;
+  overflow: hidden;
+  cursor: move;
+  font-size: 0.85rem;
+}
+
+.canvas-node.selected {
+  outline: 2px solid #7896ff;
+  outline-offset: 1px;
+}
+
+.canvas-node.kind-group {
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  border-style: dashed;
+  z-index: 0;
+}
+
+.canvas-group-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.canvas-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+
+.canvas-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0.15rem 0;
+}
+
+.canvas-editor {
+  font: inherit;
+  font-size: 0.85rem;
+  min-height: 90px;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: transparent;
+  color: inherit;
+  resize: vertical;
+}
+
 .hint {
   opacity: 0.55;
   font-size: 0.9rem;

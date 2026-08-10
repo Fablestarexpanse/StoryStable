@@ -86,3 +86,36 @@ describe('computeHealth', () => {
     expect(computeHealth([local], idx).filter((f) => f.category === 'broken-link')).toHaveLength(0);
   });
 });
+
+describe('computeHealth embeds', () => {
+  const withEmbeds = note(
+    'World/Board.md',
+    '![[board_014.png]] and ![[missing_clip.mp4]] and ![[Lan]]',
+  );
+  const lan = note('World/Characters/Lan.md', '---\ntitle: Lan\n---\n');
+  const all = [withEmbeds, lan];
+  const idx = buildLinkIndex(all);
+
+  it('flags embeds whose target is not in the vault', () => {
+    const findings = computeHealth(all, idx, ['Media/Images/board_014.png']);
+    const missing = findings.filter((f) => f.category === 'missing-embed');
+    expect(missing).toHaveLength(1);
+    expect(missing[0]?.message).toContain('missing_clip.mp4');
+  });
+
+  it('resolves embeds by filename or full path, and note embeds', () => {
+    const findings = computeHealth(all, idx, [
+      'Media/Images/board_014.png',
+      'Media/Video/missing_clip.mp4',
+    ]);
+    expect(findings.filter((f) => f.category === 'missing-embed')).toHaveLength(0);
+  });
+
+  it('does not double-report embeds as broken links', () => {
+    const findings = computeHealth(all, idx, []);
+    const brokenEmbeds = findings.filter(
+      (f) => f.category === 'broken-link' && f.message.includes('board_014.png'),
+    );
+    expect(brokenEmbeds).toHaveLength(0);
+  });
+});

@@ -11,6 +11,15 @@ and agent definition versions.
 
 ### Added
 
+- Phase 1 (fourth increment, completes Phase 1): JSON Canvas support —
+  never-throwing parser that skips malformed nodes/edges, rejects duplicate
+  ids and dangling edges, and preserves unknown/namespaced keys on nodes,
+  edges, and root so other editors' data survives a save; Rust canvas
+  read/write/list with atomic writes and extension guards; WORLD canvas view
+  with pan, zoom, node dragging, text and note cards, and delete.
+  Attachments — `list_attachments` classifying media by kind with sizes,
+  inspector listing, and a `missing-embed` health finding for `![[...]]`
+  targets absent from the vault.
 - Phase 1 (third increment): knowledge graph — `buildGraph` domain function
   (typed nodes from `entity_type`/folder, deduplicated edges, degree, orphan
   detection) and a force-directed SVG view with hover neighborhood focus and

@@ -8,7 +8,8 @@ import {
 } from '@storystable/vault';
 import { GraphView } from './GraphView.js';
 import { HealthView } from './HealthView.js';
-import type { ProjectInfo, SearchHit } from '../services/vault.js';
+import { CanvasView } from './CanvasView.js';
+import type { Attachment, ProjectInfo, SearchHit } from '../services/vault.js';
 import {
   createProject,
   openProject,
@@ -19,13 +20,21 @@ import {
   searchNotes,
   watchProject,
   onVaultChanged,
+  listAttachments,
 } from '../services/vault.js';
 import { MarkdownEditor } from './MarkdownEditor.js';
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${String(bytes)} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 interface VaultState {
   project: ProjectInfo;
   notePaths: string[];
   notes: ParsedNote[];
+  attachments: Attachment[];
 }
 
 export function WorldWorkspace() {
@@ -40,7 +49,7 @@ export function WorldWorkspace() {
   const [draft, setDraft] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const [view, setView] = useState<'notes' | 'graph' | 'health'>('notes');
+  const [view, setView] = useState<'notes' | 'graph' | 'canvas' | 'health'>('notes');
 
   const refreshNotes = useCallback(async (project: ProjectInfo) => {
     const notePaths = await listNotes(project.root);
@@ -49,7 +58,8 @@ export function WorldWorkspace() {
         parseNote({ path, source: await readNote(project.root, path) }),
       ),
     );
-    setVault({ project, notePaths, notes });
+    const attachments = await listAttachments(project.root);
+    setVault({ project, notePaths, notes, attachments });
   }, []);
 
   const loadVault = useCallback(
@@ -123,7 +133,14 @@ export function WorldWorkspace() {
     [vault, linkIndex],
   );
   const health = useMemo(
-    () => (vault && linkIndex ? computeHealth(vault.notes, linkIndex) : []),
+    () =>
+      vault && linkIndex
+        ? computeHealth(
+            vault.notes,
+            linkIndex,
+            vault.attachments.map((a) => a.path),
+          )
+        : [],
     [vault, linkIndex],
   );
   const selectedNote = vault?.notes.find((n) => n.path === selected) ?? null;
@@ -209,7 +226,7 @@ export function WorldWorkspace() {
       <aside className="navigator">
         <div className="project-name">{vault.project.name}</div>
         <div className="view-switch">
-          {(['notes', 'graph', 'health'] as const).map((v) => (
+          {(['notes', 'graph', 'canvas', 'health'] as const).map((v) => (
             <button
               key={v}
               className={view === v ? 'view active' : 'view'}
@@ -268,6 +285,12 @@ export function WorldWorkspace() {
       <section className="editor">
         {view === 'graph' && graph ? (
           <GraphView graph={graph} onOpen={selectNote} />
+        ) : view === 'canvas' ? (
+          <CanvasView
+            root={vault.project.root}
+            notePaths={vault.notePaths}
+            onOpenNote={selectNote}
+          />
         ) : view === 'health' ? (
           <HealthView root={vault.project.root} findings={health} onOpen={selectNote} />
         ) : selectedNote ? (
@@ -327,6 +350,16 @@ export function WorldWorkspace() {
             </ul>
           </>
         )}
+        <h3>Attachments ({vault.attachments.length})</h3>
+        <ul className="attachments">
+          {vault.attachments.length === 0 && <li className="hint">None in this vault.</li>}
+          {vault.attachments.map((a) => (
+            <li key={a.path}>
+              <span className={`badge kind-${a.kind}`}>{a.kind}</span> {a.path}
+              <span className="size">{formatSize(a.size)}</span>
+            </li>
+          ))}
+        </ul>
         {error && <p className="error">{error}</p>}
       </aside>
     </div>

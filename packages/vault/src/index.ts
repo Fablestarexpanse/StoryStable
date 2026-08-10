@@ -8,3 +8,12 @@ export { buildGraph } from './graph.js';
 export type { GraphNode, GraphEdge, KnowledgeGraph } from './graph.js';
 export { computeHealth } from './health.js';
 export type { HealthFinding, HealthSeverity } from './health.js';
+export { parseCanvas, serializeCanvas, canvasFileReferences, emptyCanvas } from './canvas.js';
+export type {
+  Canvas,
+  CanvasNode,
+  CanvasEdge,
+  CanvasNodeType,
+  CanvasSide,
+  CanvasParseResult,
+} from './canvas.js';

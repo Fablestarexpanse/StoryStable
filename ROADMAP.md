@@ -48,7 +48,7 @@ Notes
 
 ## Phase 1 — Vault Foundation
 
-Status: IN PROGRESS
+Status: DONE
 Owner: agent
 
 Acceptance criteria
@@ -62,8 +62,9 @@ Acceptance criteria
 - [x] File watcher with incremental indexing (`vault-changed` events)
 - [x] SQLite index build and rebuild-from-files (versioned via user_version)
 - [x] Basic knowledge graph (typed nodes, degree sizing, hover focus, orphans)
-- [ ] Canvas (JSON Canvas compatible)
-- [ ] Attachments
+- [x] Canvas (JSON Canvas compatible, unknown keys preserved on round-trip)
+- [x] Attachments (listing with kind/size, embed resolution + missing-embed
+      health check)
 - [x] Project Health panel (frontmatter errors, broken links, orphans,
       duplicate IDs, SQLite integrity)
 
@@ -85,6 +86,14 @@ Notes
   focus, click-to-open) and Project Health (computeHealth domain: frontmatter
   errors / broken links / orphans / duplicate IDs, merged with Rust
   index_health). Remaining for Phase 1: JSON Canvas and attachments.
+- 2026-08-09: fourth increment landed — Phase 1 acceptance criteria complete.
+  JSON Canvas parse/serialize preserves unknown and namespaced keys so files
+  written by other editors survive our save; canvas view supports pan, zoom,
+  drag, text/note cards, and delete. Attachments are listed with kind and
+  size, and embeds resolve against them with a `missing-embed` health finding.
+  Known gaps carried forward (not Phase 1 criteria): canvas edges are
+  preserved but not yet drawn or editable in the UI; the Markdown editor has
+  no live preview; unlinked mentions are still pending.
 
 ---
 

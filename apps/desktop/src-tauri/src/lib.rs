@@ -3,6 +3,7 @@ mod vault;
 use std::path::PathBuf;
 
 use tauri::Manager;
+use vault::assets::{self, Attachment};
 use vault::index_db::{IndexDb, IndexStats, SearchHit};
 use vault::project::{self, ProjectInfo};
 use vault::watcher::{self, WatcherState};
@@ -56,6 +57,26 @@ fn watch_project(app: tauri::AppHandle, root: String) -> Result<(), VaultError> 
     watcher::start_watching(app.clone(), &state, PathBuf::from(root))
 }
 
+#[tauri::command]
+fn list_attachments(root: String) -> Result<Vec<Attachment>, VaultError> {
+    assets::list_attachments(&PathBuf::from(root))
+}
+
+#[tauri::command]
+fn list_canvases(root: String) -> Result<Vec<String>, VaultError> {
+    assets::list_canvases(&PathBuf::from(root))
+}
+
+#[tauri::command]
+fn read_canvas(root: String, path: String) -> Result<String, VaultError> {
+    assets::read_canvas(&PathBuf::from(root), &path)
+}
+
+#[tauri::command]
+fn write_canvas(root: String, path: String, contents: String) -> Result<(), VaultError> {
+    assets::write_canvas(&PathBuf::from(root), &path, &contents)
+}
+
 #[derive(serde::Serialize)]
 struct IndexHealth {
     notes: u64,
@@ -85,7 +106,11 @@ pub fn run() {
             rebuild_index,
             search_notes,
             watch_project,
-            index_health
+            index_health,
+            list_attachments,
+            list_canvases,
+            read_canvas,
+            write_canvas
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
