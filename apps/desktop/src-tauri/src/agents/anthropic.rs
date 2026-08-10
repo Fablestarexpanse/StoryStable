@@ -18,38 +18,15 @@ use serde::{Deserialize, Serialize};
 
 use super::secrets;
 use super::AgentError;
+use super::{CompletionRequest, CompletionResponse};
 
 const API_URL: &str = "https://api.anthropic.com/v1/messages";
 const API_VERSION: &str = "2023-06-01";
+pub const PROVIDER: &str = "anthropic";
 pub const DEFAULT_MODEL: &str = "claude-opus-5";
 /// Non-streaming ceiling that stays under the HTTP timeout while leaving
 /// room for adaptive thinking, which bills against the same budget.
 const DEFAULT_MAX_TOKENS: u32 = 16_000;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatMessage {
-    pub role: String,
-    pub content: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct CompletionRequest {
-    pub model: Option<String>,
-    pub system: Option<String>,
-    pub messages: Vec<ChatMessage>,
-    pub max_tokens: Option<u32>,
-    /// `low` | `medium` | `high` | `xhigh` | `max`.
-    pub effort: Option<String>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct CompletionResponse {
-    pub text: String,
-    pub model: String,
-    pub stop_reason: Option<String>,
-    pub input_tokens: u32,
-    pub output_tokens: u32,
-}
 
 // --- wire types -----------------------------------------------------------
 
@@ -128,7 +105,7 @@ fn slice(key: &String) -> &[String] {
 /// Send a completion request. Blocking by design: it is invoked from a Tauri
 /// command already running off the UI thread.
 pub fn complete(request: &CompletionRequest) -> Result<CompletionResponse, AgentError> {
-    let key = secrets::get_key("anthropic")?;
+    let key = secrets::get_key(PROVIDER)?;
     let model = request.model.as_deref().unwrap_or(DEFAULT_MODEL);
     let max_tokens = request.max_tokens.unwrap_or(DEFAULT_MAX_TOKENS);
 

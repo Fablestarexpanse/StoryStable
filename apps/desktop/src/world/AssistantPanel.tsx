@@ -20,6 +20,7 @@ import {
   setProviderKey,
   clearProviderKey,
   modelRegistry,
+  openrouterModels,
   previewRoute,
   agentComplete,
 } from '../services/vault.js';
@@ -38,10 +39,19 @@ const POLICIES: { value: RoutingPolicy; label: string }[] = [
   { value: 'cloud_allowed', label: 'Cloud allowed' },
 ];
 
+type ProviderId = 'anthropic' | 'openrouter';
+
+const PROVIDER_LABELS: Record<ProviderId, string> = {
+  anthropic: 'Anthropic',
+  openrouter: 'OpenRouter',
+};
+
 export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
+  const [provider, setProvider] = useState<ProviderId>('anthropic');
   const [status, setStatus] = useState<CredentialStatus | null>(null);
   const [keyInput, setKeyInput] = useState('');
   const [models, setModels] = useState<ModelCapabilities[]>([]);
+  const [catalogueError, setCatalogueError] = useState<string | null>(null);
   const [model, setModel] = useState('claude-opus-5');
   const [policy, setPolicy] = useState<RoutingPolicy>('cloud_allowed');
   const [route, setRoute] = useState<RouteDecision | null>(null);
@@ -58,14 +68,45 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
 
   const agent = agentById(agentId);
 
-  useEffect(() => {
-    providerStatus('anthropic').then(setStatus, () => {
+  // Credentials and catalogue are per-provider, so both reload on switch.
+  const loadProvider = useCallback((id: ProviderId) => {
+    setCatalogueError(null);
+    providerStatus(id).then(setStatus, () => {
       setStatus(null);
     });
-    modelRegistry().then(setModels, () => {
-      setModels([]);
-    });
+    if (id === 'anthropic') {
+      modelRegistry().then(
+        (all) => {
+          const mine = all.filter((m) => m.provider === 'anthropic');
+          setModels(mine);
+          setModel((current) =>
+            mine.some((m) => m.model === current) ? current : (mine[0]?.model ?? current),
+          );
+        },
+        () => {
+          setModels([]);
+        },
+      );
+    } else {
+      // OpenRouter's catalogue is fetched live; it needs a key first.
+      openrouterModels().then(
+        (all) => {
+          setModels(all);
+          setModel((current) =>
+            all.some((m) => m.model === current) ? current : (all[0]?.model ?? current),
+          );
+        },
+        (e: unknown) => {
+          setModels([]);
+          setCatalogueError(typeof e === 'string' ? e : String(e));
+        },
+      );
+    }
   }, []);
+
+  useEffect(() => {
+    loadProvider(provider);
+  }, [provider, loadProvider]);
 
   // The route is resolved before sending so the destination is never implied.
   useEffect(() => {
@@ -121,10 +162,12 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
     if (key === '') return;
     setBusy(true);
     setError(null);
-    setProviderKey('anthropic', key)
+    setProviderKey(provider, key)
       .then((s) => {
         setStatus(s);
         setKeyInput('');
+        // A fresh key may unlock the catalogue.
+        loadProvider(provider);
       })
       .catch((e: unknown) => {
         setError(typeof e === 'string' ? e : String(e));
@@ -132,7 +175,7 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
       .finally(() => {
         setBusy(false);
       });
-  }, [keyInput]);
+  }, [keyInput, provider, loadProvider]);
 
   const ask = useCallback(() => {
     if (!context || !agent || prompt.trim() === '') return;
@@ -179,19 +222,47 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
           </select>
         </label>
         <label className="inline">
-          Model
+          Provider
           <select
-            value={model}
+            value={provider}
             onChange={(e) => {
-              setModel(e.target.value);
+              setProvider(e.target.value as ProviderId);
             }}
           >
-            {models.map((m) => (
-              <option key={m.model} value={m.model}>
-                {m.display_name}
+            {(Object.keys(PROVIDER_LABELS) as ProviderId[]).map((p) => (
+              <option key={p} value={p}>
+                {PROVIDER_LABELS[p]}
               </option>
             ))}
           </select>
+        </label>
+        <label className="inline">
+          Model
+          {models.length > 0 ? (
+            <select
+              value={model}
+              onChange={(e) => {
+                setModel(e.target.value);
+              }}
+            >
+              {models.map((m) => (
+                <option key={m.model} value={m.model}>
+                  {m.display_name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            // No catalogue yet — accept a model id directly so a known
+            // checkpoint is still reachable.
+            <input
+              value={model}
+              spellCheck={false}
+              placeholder="vendor/model"
+              onChange={(e) => {
+                setModel(e.target.value);
+              }}
+            />
+          )}
         </label>
         <label className="inline">
           Routing
@@ -251,14 +322,14 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
       {status?.configured !== true ? (
         <div className="key-setup">
           <p className="hint">
-            An Anthropic API key is required. It is stored in the OS credential manager and is never
-            sent to this window or written into your vault.
+            A {PROVIDER_LABELS[provider]} API key is required. It is stored in the OS credential
+            manager and is never sent to this window or written into your vault.
           </p>
           <div className="row">
             <input
               type="password"
               value={keyInput}
-              placeholder="sk-ant-…"
+              placeholder={provider === 'anthropic' ? 'sk-ant-…' : 'sk-or-…'}
               spellCheck={false}
               onChange={(e) => {
                 setKeyInput(e.target.value);
@@ -271,17 +342,24 @@ export function AssistantPanel({ notes, linkIndex, focusPath }: Props) {
         </div>
       ) : (
         <p className="hint">
-          Key stored <span className="badge ok">{status.hint}</span>
+          {PROVIDER_LABELS[provider]} key stored <span className="badge ok">{status.hint}</span>
           <button
             className="link-btn"
             onClick={() => {
-              clearProviderKey('anthropic').then(setStatus, () => undefined);
+              clearProviderKey(provider).then(
+                (s) => {
+                  setStatus(s);
+                  setModels([]);
+                },
+                () => undefined,
+              );
             }}
           >
             clear
           </button>
         </p>
       )}
+      {catalogueError !== null && <p className="hint">Model list unavailable: {catalogueError}</p>}
 
       {routeError !== null && <p className="error">Routing refused: {routeError}</p>}
       {route && (

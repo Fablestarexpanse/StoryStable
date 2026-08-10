@@ -132,6 +132,24 @@ pub fn list_notes(root: &Path) -> Result<Vec<String>, VaultError> {
     Ok(notes)
 }
 
+/// Create a folder (and any missing parents) inside the vault.
+/// Creating one that already exists is not an error — the desired end state
+/// already holds.
+pub fn create_folder(root: &Path, relative: &str) -> Result<(), VaultError> {
+    if relative.trim().is_empty() {
+        return Err(VaultError::PathEscape("empty folder name".into()));
+    }
+    let path = safe_join(root, relative)?;
+    // Refuse to create app-private folders through the content UI.
+    if relative.split('/').any(|part| part.starts_with('.')) {
+        return Err(VaultError::PathEscape(format!(
+            "cannot create hidden folder: {relative}"
+        )));
+    }
+    fs::create_dir_all(path)?;
+    Ok(())
+}
+
 pub fn read_note(root: &Path, relative: &str) -> Result<String, VaultError> {
     let path = safe_join(root, relative)?;
     Ok(fs::read_to_string(path)?)
@@ -198,6 +216,26 @@ mod tests {
         assert!(notes.iter().all(|n| !n.starts_with(".project")));
         let text = read_note(dir.path(), "World/Characters/Lan.md").unwrap();
         assert!(text.contains("title: Lan"));
+    }
+
+    #[test]
+    fn creates_nested_folders_idempotently() {
+        let dir = tempfile::tempdir().unwrap();
+        create_project(dir.path(), "T").unwrap();
+        create_folder(dir.path(), "World/Characters/Minor").unwrap();
+        assert!(dir.path().join("World/Characters/Minor").is_dir());
+        // Second call is a no-op, not an error.
+        create_folder(dir.path(), "World/Characters/Minor").unwrap();
+    }
+
+    #[test]
+    fn create_folder_rejects_escape_hidden_and_empty() {
+        let dir = tempfile::tempdir().unwrap();
+        create_project(dir.path(), "T").unwrap();
+        assert!(create_folder(dir.path(), "../outside").is_err());
+        assert!(create_folder(dir.path(), ".project/sneaky").is_err());
+        assert!(create_folder(dir.path(), "World/.hidden").is_err());
+        assert!(create_folder(dir.path(), "   ").is_err());
     }
 
     #[test]

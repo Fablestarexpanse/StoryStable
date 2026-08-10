@@ -27,6 +27,8 @@ export type {
 } from './knowledge.js';
 export { buildAgentContext, renderContext, spoilerInstruction, estimateTokens } from './context.js';
 export type { AgentContext, ContextItem, ContextRequest, WithheldFact } from './context.js';
+export { buildFileTree, folderPaths, ancestorsOf } from './tree.js';
+export type { TreeNode, TreeFolder, TreeFile, TreeInput } from './tree.js';
 export { AGENTS, agentById } from './agents.js';
 export type { AgentDefinition, ToolRisk } from './agents.js';
 export { buildTimeline, parseWorldDate, parseDateRange } from './timeline.js';

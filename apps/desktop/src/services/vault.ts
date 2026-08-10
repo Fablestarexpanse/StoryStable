@@ -53,6 +53,12 @@ export const writeNote = async (root: string, path: string, contents: string): P
   await invoke('write_note', { root, path, contents });
 };
 
+export const createFolder = async (root: string, path: string): Promise<void> => {
+  await invoke('create_folder', { root, path });
+};
+
+export const openrouterModels = () => invoke<ModelCapabilities[]>('openrouter_models');
+
 export const rebuildIndex = (root: string) => invoke<IndexStats>('rebuild_index', { root });
 
 export const searchNotes = (root: string, query: string) =>

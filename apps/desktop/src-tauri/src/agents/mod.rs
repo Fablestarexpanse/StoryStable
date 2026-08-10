@@ -6,9 +6,38 @@
 
 pub mod anthropic;
 pub mod gateway;
+pub mod openrouter;
 pub mod secrets;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+
+/// One turn in a conversation. Shared by every provider adapter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatMessage {
+    pub role: String,
+    pub content: String,
+}
+
+/// Provider-neutral completion request. Adapters translate it into their own
+/// wire shape; nothing provider-specific leaks into this contract.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CompletionRequest {
+    pub model: Option<String>,
+    pub system: Option<String>,
+    pub messages: Vec<ChatMessage>,
+    pub max_tokens: Option<u32>,
+    /// Depth hint where the provider supports one.
+    pub effort: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CompletionResponse {
+    pub text: String,
+    pub model: String,
+    pub stop_reason: Option<String>,
+    pub input_tokens: u32,
+    pub output_tokens: u32,
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum AgentError {

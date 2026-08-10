@@ -14,6 +14,7 @@ import { PropertiesView } from './PropertiesView.js';
 import { TimelineView } from './TimelineView.js';
 import { KnowledgeView } from './KnowledgeView.js';
 import { AssistantPanel } from './AssistantPanel.js';
+import { NavigatorTree } from './NavigatorTree.js';
 import type { Attachment, ProjectInfo, RecentProject, SearchHit } from '../services/vault.js';
 import {
   createProject,
@@ -29,6 +30,7 @@ import {
   recentProjects,
   rememberProject,
   forgetProject,
+  createFolder,
 } from '../services/vault.js';
 import { MarkdownEditor } from './MarkdownEditor.js';
 
@@ -289,11 +291,17 @@ export function WorldWorkspace() {
 
   const healthCount = health.filter((f) => f.severity !== 'advisory').length;
 
+  const createNote = async (path: string, source: string) => {
+    await writeNote(vault.project.root, path, source);
+    await refreshNotes(vault.project);
+    selectNote(path);
+  };
+
   return (
-    <div className="vault">
-      <aside className="navigator">
-        <div className="project-name">{vault.project.name}</div>
-        <div className="view-switch">
+    <div className="workspace">
+      <div className="view-bar">
+        <span className="project-name">{vault.project.name}</span>
+        <nav className="view-switch">
           {(['notes', 'table', 'graph', 'timeline', 'knowledge', 'canvas', 'health'] as const).map(
             (v) => (
               <button
@@ -308,229 +316,233 @@ export function WorldWorkspace() {
               </button>
             ),
           )}
-        </div>
-        <input
-          className="search"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-          }}
-          placeholder="Search notes…"
-          spellCheck={false}
-        />
-        {hits ? (
-          <ul>
-            {hits.length === 0 && <li className="hint">No matches.</li>}
-            {hits.map((hit) => (
-              <li key={hit.path}>
-                <button
-                  className={hit.path === selected ? 'note active' : 'note'}
-                  onClick={() => {
-                    selectNote(hit.path);
-                  }}
-                >
-                  <span className="note-title">{hit.title}</span>
-                  <span className="snippet">{hit.snippet}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <ul>
-            {vault.notePaths.map((path) => (
-              <li key={path}>
-                <button
-                  className={path === selected ? 'note active' : 'note'}
-                  onClick={() => {
-                    selectNote(path);
-                  }}
-                >
-                  {path}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </aside>
-      <section className="editor">
-        {view === 'table' ? (
-          <PropertiesView
-            notes={vault.notes}
-            onOpen={selectNote}
-            onSaveNote={async (path, source) => {
-              await writeNote(vault.project.root, path, source);
-              await refreshNotes(vault.project);
+        </nav>
+      </div>
+
+      <div className="vault">
+        <aside className="navigator">
+          <input
+            className="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
             }}
-            onCreateNote={async (path, source) => {
-              await writeNote(vault.project.root, path, source);
-              await refreshNotes(vault.project);
-            }}
+            placeholder="Search notes…"
+            spellCheck={false}
           />
-        ) : view === 'timeline' ? (
-          <TimelineView notes={vault.notes} onOpen={selectNote} />
-        ) : view === 'knowledge' ? (
-          <KnowledgeView notes={vault.notes} onOpen={selectNote} />
-        ) : view === 'graph' && graph ? (
-          <GraphView graph={graph} onOpen={selectNote} />
-        ) : view === 'canvas' ? (
-          <CanvasView
-            root={vault.project.root}
-            notePaths={vault.notePaths}
-            onOpenNote={selectNote}
-          />
-        ) : view === 'health' ? (
-          <HealthView root={vault.project.root} findings={health} onOpen={selectNote} />
-        ) : selectedNote ? (
-          <>
-            <div className="editor-head">
-              <h2>{selectedNote.title}</h2>
-              <div className="editor-actions">
-                {dirty && <span className="dirty-dot" title="Unsaved changes" />}
-                {!dirty && savedAt !== null && <span className="saved">saved</span>}
-                <button disabled={!dirty || busy} onClick={save}>
-                  Save
-                </button>
-              </div>
-            </div>
-            {selectedNote.frontmatterErrors.length > 0 && (
-              <p className="error">frontmatter: {selectedNote.frontmatterErrors.join('; ')}</p>
-            )}
-            <MarkdownEditor
-              path={selectedNote.path}
-              source={draft ?? selectedNote.source}
-              onChange={(contents) => {
-                setDraft(contents);
-                setDirty(true);
-              }}
-              onSave={save}
-            />
-          </>
-        ) : (
-          <p className="hint">Select a note.</p>
-        )}
-      </section>
-      <aside className="inspector">
-        <div className="inspector-tabs">
-          <button
-            className={assistantOpen ? 'view' : 'view active'}
-            onClick={() => {
-              setAssistantOpen(false);
-            }}
-          >
-            inspector
-          </button>
-          <button
-            className={assistantOpen ? 'view active' : 'view'}
-            onClick={() => {
-              setAssistantOpen(true);
-            }}
-          >
-            assistant
-          </button>
-        </div>
-        {assistantOpen ? (
-          <AssistantPanel notes={vault.notes} linkIndex={linkIndex} focusPath={selected} />
-        ) : (
-          <>
-            {selectedNote && (
-              <>
-                {(typeof selectedNote.frontmatter.status === 'string' ||
-                  typeof selectedNote.frontmatter.canon_level === 'string') && (
-                  <div className="canon-row">
-                    {typeof selectedNote.frontmatter.status === 'string' && (
-                      <span className={`badge status-${selectedNote.frontmatter.status}`}>
-                        {selectedNote.frontmatter.status}
-                      </span>
-                    )}
-                    {typeof selectedNote.frontmatter.canon_level === 'string' && (
-                      <span
-                        className={`badge canon-${selectedNote.frontmatter.canon_level}`}
-                        title="Canon authority"
-                      >
-                        {selectedNote.frontmatter.canon_level}
-                      </span>
-                    )}
-                  </div>
-                )}
-                <h3>Properties</h3>
-                <pre className="fm">{JSON.stringify(selectedNote.frontmatter, null, 2)}</pre>
-                <h3>Links</h3>
-                <ul>
-                  {selectedNote.links.map((l, i) => (
-                    <li key={i}>{l.target || `#${l.heading ?? ''}`}</li>
-                  ))}
-                </ul>
-                {(outgoingRels.length > 0 || incomingRels.length > 0) && (
-                  <>
-                    <h3>Relationships</h3>
-                    <ul className="relationships">
-                      {outgoingRels.map((r, i) => (
-                        <li key={`out-${String(i)}`}>
-                          <span className="rel-type">{r.relation}</span>
-                          {r.toPath ? (
-                            <button
-                              className="note"
-                              onClick={() => {
-                                if (r.toPath) selectNote(r.toPath);
-                              }}
-                            >
-                              {r.targetId}
-                            </button>
-                          ) : (
-                            <span className="rel-broken" title="target not found">
-                              {r.targetId}
-                            </span>
-                          )}
-                          {r.status !== 'current' && <span className="rel-status">{r.status}</span>}
-                        </li>
-                      ))}
-                      {incomingRels.map((r, i) => (
-                        <li key={`in-${String(i)}`} className="rel-incoming">
-                          <span className="rel-type">← {r.relation}</span>
-                          <button
-                            className="note"
-                            onClick={() => {
-                              selectNote(r.fromPath);
-                            }}
-                          >
-                            {r.fromPath}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-                <h3>Backlinks</h3>
-                <ul>
-                  {backlinks.map((b) => (
-                    <li key={b}>
-                      <button
-                        className="note"
-                        onClick={() => {
-                          selectNote(b);
-                        }}
-                      >
-                        {b}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            <h3>Attachments ({vault.attachments.length})</h3>
-            <ul className="attachments">
-              {vault.attachments.length === 0 && <li className="hint">None in this vault.</li>}
-              {vault.attachments.map((a) => (
-                <li key={a.path}>
-                  <span className={`badge kind-${a.kind}`}>{a.kind}</span> {a.path}
-                  <span className="size">{formatSize(a.size)}</span>
+          {hits ? (
+            <ul>
+              {hits.length === 0 && <li className="hint">No matches.</li>}
+              {hits.map((hit) => (
+                <li key={hit.path}>
+                  <button
+                    className={hit.path === selected ? 'note active' : 'note'}
+                    onClick={() => {
+                      selectNote(hit.path);
+                    }}
+                  >
+                    <span className="note-title">{hit.title}</span>
+                    <span className="snippet">{hit.snippet}</span>
+                  </button>
                 </li>
               ))}
             </ul>
-          </>
-        )}
-        {error && <p className="error">{error}</p>}
-      </aside>
+          ) : (
+            <NavigatorTree
+              notePaths={vault.notePaths}
+              attachmentPaths={vault.attachments.map((a) => ({ path: a.path, kind: a.kind }))}
+              selected={selected}
+              onOpen={selectNote}
+              onCreateNote={createNote}
+              onCreateFolder={async (path) => {
+                await createFolder(vault.project.root, path);
+                await refreshNotes(vault.project);
+              }}
+            />
+          )}
+        </aside>
+        <section className="editor">
+          {view === 'table' ? (
+            <PropertiesView
+              notes={vault.notes}
+              onOpen={selectNote}
+              onSaveNote={async (path, source) => {
+                await writeNote(vault.project.root, path, source);
+                await refreshNotes(vault.project);
+              }}
+              onCreateNote={async (path, source) => {
+                await writeNote(vault.project.root, path, source);
+                await refreshNotes(vault.project);
+              }}
+            />
+          ) : view === 'timeline' ? (
+            <TimelineView notes={vault.notes} onOpen={selectNote} />
+          ) : view === 'knowledge' ? (
+            <KnowledgeView notes={vault.notes} onOpen={selectNote} />
+          ) : view === 'graph' && graph ? (
+            <GraphView graph={graph} onOpen={selectNote} />
+          ) : view === 'canvas' ? (
+            <CanvasView
+              root={vault.project.root}
+              notePaths={vault.notePaths}
+              onOpenNote={selectNote}
+            />
+          ) : view === 'health' ? (
+            <HealthView root={vault.project.root} findings={health} onOpen={selectNote} />
+          ) : selectedNote ? (
+            <>
+              <div className="editor-head">
+                <h2>{selectedNote.title}</h2>
+                <div className="editor-actions">
+                  {dirty && <span className="dirty-dot" title="Unsaved changes" />}
+                  {!dirty && savedAt !== null && <span className="saved">saved</span>}
+                  <button disabled={!dirty || busy} onClick={save}>
+                    Save
+                  </button>
+                </div>
+              </div>
+              {selectedNote.frontmatterErrors.length > 0 && (
+                <p className="error">frontmatter: {selectedNote.frontmatterErrors.join('; ')}</p>
+              )}
+              <MarkdownEditor
+                path={selectedNote.path}
+                source={draft ?? selectedNote.source}
+                onChange={(contents) => {
+                  setDraft(contents);
+                  setDirty(true);
+                }}
+                onSave={save}
+              />
+            </>
+          ) : (
+            <p className="hint">Select a note.</p>
+          )}
+        </section>
+        <aside className="inspector">
+          <div className="inspector-tabs">
+            <button
+              className={assistantOpen ? 'view' : 'view active'}
+              onClick={() => {
+                setAssistantOpen(false);
+              }}
+            >
+              inspector
+            </button>
+            <button
+              className={assistantOpen ? 'view active' : 'view'}
+              onClick={() => {
+                setAssistantOpen(true);
+              }}
+            >
+              assistant
+            </button>
+          </div>
+          {assistantOpen ? (
+            <AssistantPanel notes={vault.notes} linkIndex={linkIndex} focusPath={selected} />
+          ) : (
+            <>
+              {selectedNote && (
+                <>
+                  {(typeof selectedNote.frontmatter.status === 'string' ||
+                    typeof selectedNote.frontmatter.canon_level === 'string') && (
+                    <div className="canon-row">
+                      {typeof selectedNote.frontmatter.status === 'string' && (
+                        <span className={`badge status-${selectedNote.frontmatter.status}`}>
+                          {selectedNote.frontmatter.status}
+                        </span>
+                      )}
+                      {typeof selectedNote.frontmatter.canon_level === 'string' && (
+                        <span
+                          className={`badge canon-${selectedNote.frontmatter.canon_level}`}
+                          title="Canon authority"
+                        >
+                          {selectedNote.frontmatter.canon_level}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <h3>Properties</h3>
+                  <pre className="fm">{JSON.stringify(selectedNote.frontmatter, null, 2)}</pre>
+                  <h3>Links</h3>
+                  <ul>
+                    {selectedNote.links.map((l, i) => (
+                      <li key={i}>{l.target || `#${l.heading ?? ''}`}</li>
+                    ))}
+                  </ul>
+                  {(outgoingRels.length > 0 || incomingRels.length > 0) && (
+                    <>
+                      <h3>Relationships</h3>
+                      <ul className="relationships">
+                        {outgoingRels.map((r, i) => (
+                          <li key={`out-${String(i)}`}>
+                            <span className="rel-type">{r.relation}</span>
+                            {r.toPath ? (
+                              <button
+                                className="note"
+                                onClick={() => {
+                                  if (r.toPath) selectNote(r.toPath);
+                                }}
+                              >
+                                {r.targetId}
+                              </button>
+                            ) : (
+                              <span className="rel-broken" title="target not found">
+                                {r.targetId}
+                              </span>
+                            )}
+                            {r.status !== 'current' && (
+                              <span className="rel-status">{r.status}</span>
+                            )}
+                          </li>
+                        ))}
+                        {incomingRels.map((r, i) => (
+                          <li key={`in-${String(i)}`} className="rel-incoming">
+                            <span className="rel-type">← {r.relation}</span>
+                            <button
+                              className="note"
+                              onClick={() => {
+                                selectNote(r.fromPath);
+                              }}
+                            >
+                              {r.fromPath}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  <h3>Backlinks</h3>
+                  <ul>
+                    {backlinks.map((b) => (
+                      <li key={b}>
+                        <button
+                          className="note"
+                          onClick={() => {
+                            selectNote(b);
+                          }}
+                        >
+                          {b}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <h3>Attachments ({vault.attachments.length})</h3>
+              <ul className="attachments">
+                {vault.attachments.length === 0 && <li className="hint">None in this vault.</li>}
+                {vault.attachments.map((a) => (
+                  <li key={a.path}>
+                    <span className={`badge kind-${a.kind}`}>{a.kind}</span> {a.path}
+                    <span className="size">{formatSize(a.size)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {error && <p className="error">{error}</p>}
+        </aside>
+      </div>
     </div>
   );
 }

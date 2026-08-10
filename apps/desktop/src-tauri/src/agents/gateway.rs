@@ -125,6 +125,22 @@ pub fn find_model(model: &str) -> Option<ModelCapabilities> {
     registry().into_iter().find(|m| m.model == model)
 }
 
+/// Which provider serves a model id.
+///
+/// OpenRouter model ids are namespaced (`vendor/model`), and its catalogue is
+/// fetched at runtime rather than hard-coded, so the slash is the routing
+/// signal — a bare id belongs to a first-party provider in the static
+/// registry.
+pub fn provider_for(model: &str) -> Option<String> {
+    if let Some(caps) = find_model(model) {
+        return Some(caps.provider);
+    }
+    if model.contains('/') {
+        return Some("openrouter".to_string());
+    }
+    None
+}
+
 /// The gateway's decision about a request, surfaced so the destination is
 /// always visible to the user rather than implied (spec §12.6).
 #[derive(Debug, Clone, Serialize)]
@@ -139,28 +155,38 @@ pub struct RouteDecision {
 
 /// Resolve a request to a route, or refuse. No network call happens here.
 pub fn route(model: &str, policy: RoutingPolicy) -> Result<RouteDecision, AgentError> {
-    let caps = find_model(model).ok_or_else(|| AgentError::UnknownProvider(model.to_string()))?;
+    // Known models carry their own capabilities; an OpenRouter model comes
+    // from a runtime catalogue, so it is resolved by provider and treated as
+    // cloud — the safe assumption when capabilities are not yet known.
+    let (provider, privacy_class) = match find_model(model) {
+        Some(caps) => (caps.provider, caps.privacy_class),
+        None => {
+            let provider = provider_for(model)
+                .ok_or_else(|| AgentError::UnknownProvider(model.to_string()))?;
+            (provider, PrivacyClass::Cloud)
+        }
+    };
 
-    if caps.privacy_class == PrivacyClass::Cloud && !policy.allows_cloud() {
+    if privacy_class == PrivacyClass::Cloud && !policy.allows_cloud() {
         return Err(AgentError::PolicyForbidsCloud {
             policy: policy.label().to_string(),
-            provider: caps.provider,
+            provider,
         });
     }
 
-    let rationale = match caps.privacy_class {
-        PrivacyClass::Local => format!("{} runs locally; nothing leaves this machine.", caps.model),
+    let rationale = match privacy_class {
+        PrivacyClass::Local => format!("{model} runs locally; nothing leaves this machine."),
         PrivacyClass::Cloud => format!(
             "Project content in this request is sent to {} under policy \"{}\".",
-            caps.provider,
+            provider,
             policy.label()
         ),
     };
 
     Ok(RouteDecision {
-        provider: caps.provider,
-        model: caps.model,
-        privacy_class: caps.privacy_class,
+        provider,
+        model: model.to_string(),
+        privacy_class,
         policy: policy.label().to_string(),
         rationale,
     })
@@ -208,10 +234,36 @@ mod tests {
     }
 
     #[test]
-    fn unknown_model_is_rejected_before_any_call() {
+    fn unknown_bare_model_is_rejected_before_any_call() {
         assert!(matches!(
             route("gpt-imaginary", RoutingPolicy::CloudAllowed),
             Err(AgentError::UnknownProvider(_))
+        ));
+    }
+
+    #[test]
+    fn namespaced_ids_route_to_openrouter_without_a_static_entry() {
+        assert_eq!(
+            provider_for("meta-llama/llama-4"),
+            Some("openrouter".into())
+        );
+        let decision = route("meta-llama/llama-4", RoutingPolicy::CloudAllowed).unwrap();
+        assert_eq!(decision.provider, "openrouter");
+        assert_eq!(decision.model, "meta-llama/llama-4");
+    }
+
+    #[test]
+    fn a_first_party_model_keeps_its_own_provider() {
+        assert_eq!(provider_for("claude-opus-5"), Some("anthropic".into()));
+    }
+
+    #[test]
+    fn an_unknown_openrouter_model_is_still_blocked_by_local_only() {
+        // Capabilities are unknown, so it must be assumed cloud rather than
+        // waved through.
+        assert!(matches!(
+            route("vendor/whatever", RoutingPolicy::LocalOnly),
+            Err(AgentError::PolicyForbidsCloud { .. })
         ));
     }
 

@@ -3,10 +3,9 @@ mod vault;
 
 use std::path::PathBuf;
 
-use agents::anthropic::{self, CompletionRequest, CompletionResponse};
 use agents::gateway::{self, ModelCapabilities, RouteDecision, RoutingPolicy};
 use agents::secrets::{self, CredentialStatus};
-use agents::AgentError;
+use agents::{anthropic, openrouter, AgentError, CompletionRequest, CompletionResponse};
 
 use tauri::Manager;
 use vault::assets::{self, Attachment};
@@ -59,6 +58,11 @@ fn read_note(root: String, path: String) -> Result<String, VaultError> {
 #[tauri::command]
 fn write_note(root: String, path: String, contents: String) -> Result<(), VaultError> {
     project::write_note(&PathBuf::from(root), &path, &contents)
+}
+
+#[tauri::command]
+fn create_folder(root: String, path: String) -> Result<(), VaultError> {
+    project::create_folder(&PathBuf::from(root), &path)
 }
 
 #[tauri::command]
@@ -148,6 +152,13 @@ fn preview_route(model: String, policy: RoutingPolicy) -> Result<RouteDecision, 
     gateway::route(&model, policy)
 }
 
+/// Fetch OpenRouter's live catalogue so any checkpoint the account can reach
+/// is selectable, rather than a hard-coded list going stale.
+#[tauri::command]
+fn openrouter_models() -> Result<Vec<ModelCapabilities>, AgentError> {
+    openrouter::list_models()
+}
+
 #[tauri::command]
 fn agent_complete(
     request: CompletionRequest,
@@ -157,9 +168,17 @@ fn agent_complete(
         .model
         .clone()
         .unwrap_or_else(|| anthropic::DEFAULT_MODEL.to_string());
-    // Policy is enforced before any network call.
-    gateway::route(&model, policy)?;
-    anthropic::complete(&request)
+    // Policy is enforced before any network call, and the route names the
+    // provider that will serve the request.
+    let decision = gateway::route(&model, policy)?;
+    let mut request = request;
+    request.model = Some(model);
+
+    match decision.provider.as_str() {
+        openrouter::PROVIDER => openrouter::complete(&request),
+        anthropic::PROVIDER => anthropic::complete(&request),
+        other => Err(AgentError::UnknownProvider(other.to_string())),
+    }
 }
 
 #[derive(serde::Serialize)]
@@ -203,8 +222,10 @@ pub fn run() {
             provider_status,
             clear_provider_key,
             model_registry,
+            openrouter_models,
             preview_route,
-            agent_complete
+            agent_complete,
+            create_folder
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
