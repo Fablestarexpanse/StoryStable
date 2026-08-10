@@ -261,19 +261,20 @@ Acceptance criteria
 
 ## Phase 6 — MiniMax H3
 
-Status: NOT STARTED
-Owner: unassigned
+Status: IN PROGRESS
+Owner: agent
 
 Acceptance criteria
 
 - [ ] H3 capability profile
-- [ ] Mode router (T2VA / I2VA / FL2VA / L2VA / Ref2VA)
-- [ ] Duration resolver on the 24fps frame grid
+- [x] Mode router (T2VA / I2VA / FL2VA / L2VA / Ref2VA)
+- [x] Duration resolver on the 24fps frame grid
 - [ ] Resolution resolver
-- [ ] Semantic reference resolver with atomic tag renumbering
-- [ ] Base prompt compiler
-- [ ] Full-reference prompt compiler
-- [ ] H3 preflight
+- [x] Semantic reference resolver with atomic tag renumbering
+- [x] Base prompt compiler
+- [x] Full-reference prompt compiler
+- [x] H3 preflight — structural checks on the compiled prompt; nothing yet
+      checks against a live capability profile
 - [ ] FL2VA workflow adapter
 - [ ] Ref2VA workflow adapter
 - [ ] Queue and progress
@@ -281,6 +282,27 @@ Acceptance criteria
 - [ ] Continuation
 - [ ] Prompt/packet inspector
 - [ ] License/territory acknowledgement gate for local H3
+
+Notes
+
+- 2026-08-10: first increment, taken ahead of Phase 5 because the compiler is
+  useful on its own and testable in isolation. Its input is a local type
+  rather than the Phase 5 `Shot` object, which does not exist yet; wiring is
+  one adapter function when shots land.
+- The design rule the whole phase rests on: H3 syntax exists only inside the
+  compiler. The vault never stores a compiled prompt as authored content, so a
+  shot can be retargeted to another renderer and every prompt is reproducible
+  from its inputs.
+- Reference numbering is derived, never stored. Prose is written with
+  `{{ref:id}}` placeholders and labels are substituted at compile time, which
+  is what makes renumbering atomic — deleting a reference renumbers the rest
+  together and there is no intermediate state pointing at a label that no
+  longer exists. Labels written by hand are detected and reported, because
+  they silently opt out of that guarantee.
+- The compiler is deterministic about everything mechanically checkable —
+  mode, frame grid, timestamp formats, instruction lines, section order — and
+  leaves the prose to a model. That boundary is deliberate: a compiled prompt
+  that varied run to run would not be reproducible. 45 tests.
 
 ---
 

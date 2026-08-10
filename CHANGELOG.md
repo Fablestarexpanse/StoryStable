@@ -17,6 +17,19 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 6 (first increment): MiniMax H3 prompt compiler. H3 syntax exists only
+  here — shots stay renderer-neutral per spec §1.4/§1.5, so nothing in the
+  vault stores an H3 prompt as authored content and every prompt is
+  reproducible from the data that produced it. The compiler routes the input
+  mode (T2VA / I2VA / FL2VA / L2VA / Ref2VA) from the references attached,
+  snaps duration onto the 24fps frame grid, emits the fixed instruction lines
+  and section order each mode requires, and validates shot structure (cut
+  times strictly increasing, inside the duration, no timestamp on the first
+  shot). Reference numbering is derived rather than stored: prose is written
+  with `{{ref:id}}` placeholders and labels are substituted at compile time,
+  so removing a reference renumbers every remaining tag atomically and cannot
+  strand a `<Picture 3>` that no longer exists. Findings are warnings, not
+  gates.
 - Phase 4 (second increment): Scene Capsules. A capsule is an ordinary
   `type: scene` note carrying the production layer around a scene — purpose,
   state change, protected information — while the screenplay keeps the prose.

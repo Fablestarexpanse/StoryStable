@@ -36,6 +36,31 @@ export {
 export type { Screenplay, ScreenplayElement, ElementKind, SceneSummary } from './fountain.js';
 export { linkScenes, sceneCapsules, storyDiagnostics, createSceneCapsule } from './scenes.js';
 export type { SceneLink, StoryDiagnostic } from './scenes.js';
+export {
+  compileH3,
+  resolveMode,
+  assignLabels,
+  resolveTags,
+  parseShots,
+  checkShots,
+  snapToFrames,
+  formatSeconds,
+  formatCutTime,
+} from './h3.js';
+export type {
+  H3Mode,
+  H3Input,
+  H3Reference,
+  H3Warning,
+  CompiledH3,
+  ReferenceKind,
+  ReferenceRole,
+  Retention,
+  VisualRetention,
+  AudioRetention,
+  TaskType,
+  ResolvedProse,
+} from './h3.js';
 export { diffLines, diffStats, collapseContext, stripCodeFence } from './diff.js';
 export type { DiffLine, DiffOp, DiffStats, DiffChunk } from './diff.js';
 export { buildFileTree, folderPaths, ancestorsOf } from './tree.js';
