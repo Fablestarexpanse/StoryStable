@@ -150,21 +150,38 @@ Notes
 
 ## Phase 3 — Agents
 
-Status: NOT STARTED
-Owner: unassigned
+Status: IN PROGRESS
+Owner: agent
 
 Acceptance criteria
 
-- [ ] Model Gateway with routing presets
-- [ ] Local and cloud provider adapters
-- [ ] Capability registry
-- [ ] Context Inspector
+- [x] Model Gateway with routing presets (LocalOnly refuses cloud; no silent
+      fallback; route decision surfaced before sending)
+- [ ] Local and cloud provider adapters — Anthropic done; Ollama/LM Studio
+      pending, so LocalOnly currently has no provider to route to
+- [x] Capability registry
+- [x] Context Inspector (per-item toggles, token estimate, withheld facts)
 - [ ] `AgentPatch` propose/review/apply with stale-patch detection
-- [ ] Tool risk levels and permission policy
-- [ ] Writing Partner
-- [ ] Canon Keeper
-- [ ] Character Director
-- [ ] Continuity Supervisor
+- [x] Tool risk levels and permission policy (all agents read-only,
+      review-gated; enforced by test)
+- [x] Writing Partner
+- [x] Canon Keeper
+- [x] Character Director
+- [x] Continuity Supervisor
+
+Notes
+
+- 2026-08-09: first increment. Provider credentials live in the OS credential
+  manager and never reach the webview — the Messages API call is made from
+  Rust over raw HTTP (no official Anthropic Rust SDK exists), so a prompt
+  injection inside project content cannot read the key. Verified by grepping
+  the built bundle for `x-api-key` / `api.anthropic.com` / `anthropic-version`.
+  Requests omit `temperature`/`top_p`/`top_k` and `budget_tokens` (rejected by
+  the current model family) and check `stop_reason` before reading content so
+  a refusal is not mistaken for an empty answer.
+- Agents are read-only in this increment: output is a proposal shown in the
+  panel, and nothing is written to the vault. The AgentPatch write path with
+  stale-hash detection is the next increment.
 
 ---
 

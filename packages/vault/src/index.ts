@@ -25,6 +25,10 @@ export type {
   FactValue,
   KnowledgeIssue,
 } from './knowledge.js';
+export { buildAgentContext, renderContext, spoilerInstruction, estimateTokens } from './context.js';
+export type { AgentContext, ContextItem, ContextRequest, WithheldFact } from './context.js';
+export { AGENTS, agentById } from './agents.js';
+export type { AgentDefinition, ToolRisk } from './agents.js';
 export { buildTimeline, parseWorldDate, parseDateRange } from './timeline.js';
 export type { Timeline, TimelineEvent, TimelineConflict, WorldDate } from './timeline.js';
 export { collectColumns, buildRows, groupRows, formatValue, rowsToCsv } from './properties.js';

@@ -13,6 +13,7 @@ import { CanvasView } from './CanvasView.js';
 import { PropertiesView } from './PropertiesView.js';
 import { TimelineView } from './TimelineView.js';
 import { KnowledgeView } from './KnowledgeView.js';
+import { AssistantPanel } from './AssistantPanel.js';
 import type { Attachment, ProjectInfo, RecentProject, SearchHit } from '../services/vault.js';
 import {
   createProject,
@@ -60,6 +61,7 @@ export function WorldWorkspace() {
     'notes' | 'table' | 'graph' | 'timeline' | 'knowledge' | 'canvas' | 'health'
   >('notes');
   const [recents, setRecents] = useState<RecentProject[]>([]);
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   const refreshNotes = useCallback(async (project: ProjectInfo) => {
     const notePaths = await listNotes(project.root);
@@ -408,101 +410,125 @@ export function WorldWorkspace() {
         )}
       </section>
       <aside className="inspector">
-        {selectedNote && (
+        <div className="inspector-tabs">
+          <button
+            className={assistantOpen ? 'view' : 'view active'}
+            onClick={() => {
+              setAssistantOpen(false);
+            }}
+          >
+            inspector
+          </button>
+          <button
+            className={assistantOpen ? 'view active' : 'view'}
+            onClick={() => {
+              setAssistantOpen(true);
+            }}
+          >
+            assistant
+          </button>
+        </div>
+        {assistantOpen ? (
+          <AssistantPanel notes={vault.notes} linkIndex={linkIndex} focusPath={selected} />
+        ) : (
           <>
-            {(typeof selectedNote.frontmatter.status === 'string' ||
-              typeof selectedNote.frontmatter.canon_level === 'string') && (
-              <div className="canon-row">
-                {typeof selectedNote.frontmatter.status === 'string' && (
-                  <span className={`badge status-${selectedNote.frontmatter.status}`}>
-                    {selectedNote.frontmatter.status}
-                  </span>
-                )}
-                {typeof selectedNote.frontmatter.canon_level === 'string' && (
-                  <span
-                    className={`badge canon-${selectedNote.frontmatter.canon_level}`}
-                    title="Canon authority"
-                  >
-                    {selectedNote.frontmatter.canon_level}
-                  </span>
-                )}
-              </div>
-            )}
-            <h3>Properties</h3>
-            <pre className="fm">{JSON.stringify(selectedNote.frontmatter, null, 2)}</pre>
-            <h3>Links</h3>
-            <ul>
-              {selectedNote.links.map((l, i) => (
-                <li key={i}>{l.target || `#${l.heading ?? ''}`}</li>
-              ))}
-            </ul>
-            {(outgoingRels.length > 0 || incomingRels.length > 0) && (
+            {selectedNote && (
               <>
-                <h3>Relationships</h3>
-                <ul className="relationships">
-                  {outgoingRels.map((r, i) => (
-                    <li key={`out-${String(i)}`}>
-                      <span className="rel-type">{r.relation}</span>
-                      {r.toPath ? (
-                        <button
-                          className="note"
-                          onClick={() => {
-                            if (r.toPath) selectNote(r.toPath);
-                          }}
-                        >
-                          {r.targetId}
-                        </button>
-                      ) : (
-                        <span className="rel-broken" title="target not found">
-                          {r.targetId}
-                        </span>
-                      )}
-                      {r.status !== 'current' && <span className="rel-status">{r.status}</span>}
-                    </li>
+                {(typeof selectedNote.frontmatter.status === 'string' ||
+                  typeof selectedNote.frontmatter.canon_level === 'string') && (
+                  <div className="canon-row">
+                    {typeof selectedNote.frontmatter.status === 'string' && (
+                      <span className={`badge status-${selectedNote.frontmatter.status}`}>
+                        {selectedNote.frontmatter.status}
+                      </span>
+                    )}
+                    {typeof selectedNote.frontmatter.canon_level === 'string' && (
+                      <span
+                        className={`badge canon-${selectedNote.frontmatter.canon_level}`}
+                        title="Canon authority"
+                      >
+                        {selectedNote.frontmatter.canon_level}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <h3>Properties</h3>
+                <pre className="fm">{JSON.stringify(selectedNote.frontmatter, null, 2)}</pre>
+                <h3>Links</h3>
+                <ul>
+                  {selectedNote.links.map((l, i) => (
+                    <li key={i}>{l.target || `#${l.heading ?? ''}`}</li>
                   ))}
-                  {incomingRels.map((r, i) => (
-                    <li key={`in-${String(i)}`} className="rel-incoming">
-                      <span className="rel-type">← {r.relation}</span>
+                </ul>
+                {(outgoingRels.length > 0 || incomingRels.length > 0) && (
+                  <>
+                    <h3>Relationships</h3>
+                    <ul className="relationships">
+                      {outgoingRels.map((r, i) => (
+                        <li key={`out-${String(i)}`}>
+                          <span className="rel-type">{r.relation}</span>
+                          {r.toPath ? (
+                            <button
+                              className="note"
+                              onClick={() => {
+                                if (r.toPath) selectNote(r.toPath);
+                              }}
+                            >
+                              {r.targetId}
+                            </button>
+                          ) : (
+                            <span className="rel-broken" title="target not found">
+                              {r.targetId}
+                            </span>
+                          )}
+                          {r.status !== 'current' && <span className="rel-status">{r.status}</span>}
+                        </li>
+                      ))}
+                      {incomingRels.map((r, i) => (
+                        <li key={`in-${String(i)}`} className="rel-incoming">
+                          <span className="rel-type">← {r.relation}</span>
+                          <button
+                            className="note"
+                            onClick={() => {
+                              selectNote(r.fromPath);
+                            }}
+                          >
+                            {r.fromPath}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                <h3>Backlinks</h3>
+                <ul>
+                  {backlinks.map((b) => (
+                    <li key={b}>
                       <button
                         className="note"
                         onClick={() => {
-                          selectNote(r.fromPath);
+                          selectNote(b);
                         }}
                       >
-                        {r.fromPath}
+                        {b}
                       </button>
                     </li>
                   ))}
                 </ul>
               </>
             )}
-            <h3>Backlinks</h3>
-            <ul>
-              {backlinks.map((b) => (
-                <li key={b}>
-                  <button
-                    className="note"
-                    onClick={() => {
-                      selectNote(b);
-                    }}
-                  >
-                    {b}
-                  </button>
+            <h3>Attachments ({vault.attachments.length})</h3>
+            <ul className="attachments">
+              {vault.attachments.length === 0 && <li className="hint">None in this vault.</li>}
+              {vault.attachments.map((a) => (
+                <li key={a.path}>
+                  <span className={`badge kind-${a.kind}`}>{a.kind}</span> {a.path}
+                  <span className="size">{formatSize(a.size)}</span>
                 </li>
               ))}
             </ul>
           </>
         )}
-        <h3>Attachments ({vault.attachments.length})</h3>
-        <ul className="attachments">
-          {vault.attachments.length === 0 && <li className="hint">None in this vault.</li>}
-          {vault.attachments.map((a) => (
-            <li key={a.path}>
-              <span className={`badge kind-${a.kind}`}>{a.kind}</span> {a.path}
-              <span className="size">{formatSize(a.size)}</span>
-            </li>
-          ))}
-        </ul>
         {error && <p className="error">{error}</p>}
       </aside>
     </div>

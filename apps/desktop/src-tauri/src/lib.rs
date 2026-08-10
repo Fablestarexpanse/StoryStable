@@ -1,6 +1,12 @@
+mod agents;
 mod vault;
 
 use std::path::PathBuf;
+
+use agents::anthropic::{self, CompletionRequest, CompletionResponse};
+use agents::gateway::{self, ModelCapabilities, RouteDecision, RoutingPolicy};
+use agents::secrets::{self, CredentialStatus};
+use agents::AgentError;
 
 use tauri::Manager;
 use vault::assets::{self, Attachment};
@@ -111,6 +117,51 @@ fn write_canvas(root: String, path: String, contents: String) -> Result<(), Vaul
     assets::write_canvas(&PathBuf::from(root), &path, &contents)
 }
 
+// --- agents ---------------------------------------------------------------
+
+#[tauri::command]
+fn set_provider_key(provider: String, key: String) -> Result<CredentialStatus, AgentError> {
+    secrets::set_key(&provider, &key)?;
+    Ok(secrets::status(&provider))
+}
+
+#[tauri::command]
+fn provider_status(provider: String) -> CredentialStatus {
+    secrets::status(&provider)
+}
+
+#[tauri::command]
+fn clear_provider_key(provider: String) -> Result<CredentialStatus, AgentError> {
+    secrets::delete_key(&provider)?;
+    Ok(secrets::status(&provider))
+}
+
+#[tauri::command]
+fn model_registry() -> Vec<ModelCapabilities> {
+    gateway::registry()
+}
+
+/// Resolve a route without calling the provider — used by the context
+/// inspector to show the destination before the user commits.
+#[tauri::command]
+fn preview_route(model: String, policy: RoutingPolicy) -> Result<RouteDecision, AgentError> {
+    gateway::route(&model, policy)
+}
+
+#[tauri::command]
+fn agent_complete(
+    request: CompletionRequest,
+    policy: RoutingPolicy,
+) -> Result<CompletionResponse, AgentError> {
+    let model = request
+        .model
+        .clone()
+        .unwrap_or_else(|| anthropic::DEFAULT_MODEL.to_string());
+    // Policy is enforced before any network call.
+    gateway::route(&model, policy)?;
+    anthropic::complete(&request)
+}
+
 #[derive(serde::Serialize)]
 struct IndexHealth {
     notes: u64,
@@ -147,7 +198,13 @@ pub fn run() {
             write_canvas,
             recent_projects,
             remember_project,
-            forget_project
+            forget_project,
+            set_provider_key,
+            provider_status,
+            clear_provider_key,
+            model_registry,
+            preview_route,
+            agent_complete
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

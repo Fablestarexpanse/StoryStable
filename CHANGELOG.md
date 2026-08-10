@@ -17,6 +17,19 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 3 (first increment): agent system. Provider credentials stored in the
+  OS credential manager, never returned to the webview and redacted from
+  provider errors; Model Gateway with a capability registry and routing
+  policies that refuse cloud use under Local Only rather than falling back
+  silently, with the destination shown before sending; Anthropic adapter
+  calling the Messages API from Rust over raw HTTP with `claude-opus-5`,
+  omitting parameters the current model family rejects and treating a
+  `refusal` stop reason as an error rather than an empty answer; context
+  assembly that includes the focus note, its links, and locked canon, and
+  withholds facts a point-of-view character does not know; four read-only,
+  review-gated agents (Writing Partner, Canon Keeper, Character Director,
+  Continuity Supervisor); Context Inspector with per-item toggles, token
+  estimates, and a list of withheld facts.
 - Phase 2 (third increment, completes Phase 2): truth / character knowledge /
   audience knowledge model. State snapshots are parsed, ordered by scene, and
   resolved into world state and per-observer knowledge at any story position;

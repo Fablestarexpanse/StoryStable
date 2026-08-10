@@ -64,6 +64,74 @@ export const watchProject = async (root: string): Promise<void> => {
 
 export const indexHealth = (root: string) => invoke<IndexHealth>('index_health', { root });
 
+// --- agents ---------------------------------------------------------------
+
+export type RoutingPolicy =
+  'local_only' | 'local_first' | 'balanced' | 'best_quality' | 'cloud_allowed';
+
+export interface CredentialStatus {
+  provider: string;
+  configured: boolean;
+  /** Last 4 characters only — never the key itself. */
+  hint: string | null;
+}
+
+export interface ModelCapabilities {
+  provider: string;
+  model: string;
+  display_name: string;
+  privacy_class: 'local' | 'cloud';
+  context_tokens: number;
+  max_output_tokens: number;
+  vision: boolean;
+  tool_calling: boolean;
+  structured_output: boolean;
+  streaming: boolean;
+  input_cost_per_mtok: number | null;
+  output_cost_per_mtok: number | null;
+}
+
+export interface RouteDecision {
+  provider: string;
+  model: string;
+  privacy_class: 'local' | 'cloud';
+  policy: string;
+  rationale: string;
+}
+
+export interface CompletionResponse {
+  text: string;
+  model: string;
+  stop_reason: string | null;
+  input_tokens: number;
+  output_tokens: number;
+}
+
+export const setProviderKey = (provider: string, key: string) =>
+  invoke<CredentialStatus>('set_provider_key', { provider, key });
+
+export const providerStatus = (provider: string) =>
+  invoke<CredentialStatus>('provider_status', { provider });
+
+export const clearProviderKey = (provider: string) =>
+  invoke<CredentialStatus>('clear_provider_key', { provider });
+
+export const modelRegistry = () => invoke<ModelCapabilities[]>('model_registry');
+
+export const previewRoute = (model: string, policy: RoutingPolicy) =>
+  invoke<RouteDecision>('preview_route', { model, policy });
+
+export const agentComplete = (
+  request: {
+    model?: string;
+    system?: string;
+    messages: { role: string; content: string }[];
+    max_tokens?: number;
+    effort?: string;
+  },
+  policy: RoutingPolicy,
+) => invoke<CompletionResponse>('agent_complete', { request, policy });
+
 export const recentProjects = () => invoke<RecentProject[]>('recent_projects');
 
 export const rememberProject = (root: string, name: string) =>
