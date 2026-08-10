@@ -27,6 +27,13 @@ export type {
 } from './knowledge.js';
 export { buildAgentContext, renderContext, spoilerInstruction, estimateTokens } from './context.js';
 export type { AgentContext, ContextItem, ContextRequest, WithheldFact } from './context.js';
+export {
+  parseFountain,
+  serializeFountain,
+  sceneSummaries,
+  speakingCharacters,
+} from './fountain.js';
+export type { Screenplay, ScreenplayElement, ElementKind, SceneSummary } from './fountain.js';
 export { diffLines, diffStats, collapseContext, stripCodeFence } from './diff.js';
 export type { DiffLine, DiffOp, DiffStats, DiffChunk } from './diff.js';
 export { buildFileTree, folderPaths, ancestorsOf } from './tree.js';

@@ -51,6 +51,11 @@ fn list_notes(root: String) -> Result<Vec<String>, VaultError> {
 }
 
 #[tauri::command]
+fn list_screenplays(root: String) -> Result<Vec<String>, VaultError> {
+    project::list_screenplays(&PathBuf::from(root))
+}
+
+#[tauri::command]
 fn read_note(root: String, path: String) -> Result<String, VaultError> {
     project::read_note(&PathBuf::from(root), &path)
 }
@@ -236,6 +241,7 @@ pub fn run() {
             create_project,
             open_project,
             list_notes,
+            list_screenplays,
             read_note,
             write_note,
             rebuild_index,

@@ -17,6 +17,12 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 4 (first increment): STORY workspace with a Fountain screenplay
+  parser and editor. The `.fountain` file stays the source of truth and the
+  formatted screenplay view is a projection of it, with raw mode always
+  available; scene and character navigators are derived from the parse. The
+  vault now accepts `.fountain` alongside `.md`, listed separately so the
+  WORLD tree stays Markdown-only.
 - Phase 3 (third increment, completes Phase 3): local providers. Ollama and
   LM Studio are reachable through their shared OpenAI-compatible endpoint and
   classified Local, so the Local Only routing policy now routes instead of

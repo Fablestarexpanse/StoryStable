@@ -108,6 +108,47 @@ pub fn open_project(root: &Path) -> Result<ProjectInfo, VaultError> {
     })
 }
 
+/// Text documents the vault owns and may write. Markdown is world/production
+/// content; Fountain is the durable screenplay format (spec §6.2).
+const TEXT_EXTENSIONS: &[&str] = &["md", "fountain"];
+
+fn is_text_document(name: &str) -> bool {
+    let lower = name.to_lowercase();
+    TEXT_EXTENSIONS
+        .iter()
+        .any(|ext| lower.ends_with(&format!(".{ext}")))
+}
+
+/// List screenplay files, so STORY can offer them without scanning notes.
+pub fn list_screenplays(root: &Path) -> Result<Vec<String>, VaultError> {
+    Ok(list_text_documents(root)?
+        .into_iter()
+        .filter(|p| p.to_lowercase().ends_with(".fountain"))
+        .collect())
+}
+
+fn list_text_documents(root: &Path) -> Result<Vec<String>, VaultError> {
+    let mut found = Vec::new();
+    let mut stack: Vec<PathBuf> = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        for entry in fs::read_dir(&dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with('.') {
+                continue;
+            }
+            if path.is_dir() {
+                stack.push(path);
+            } else if is_text_document(&name) {
+                found.push(to_relative(root, &path)?);
+            }
+        }
+    }
+    found.sort();
+    Ok(found)
+}
+
 /// List Markdown notes under the project root, excluding `.project/` and
 /// hidden directories. Paths are root-relative with forward slashes, sorted.
 pub fn list_notes(root: &Path) -> Result<Vec<String>, VaultError> {
@@ -156,9 +197,9 @@ pub fn read_note(root: &Path, relative: &str) -> Result<String, VaultError> {
 }
 
 pub fn write_note(root: &Path, relative: &str, contents: &str) -> Result<(), VaultError> {
-    if !relative.to_lowercase().ends_with(".md") {
+    if !is_text_document(relative) {
         return Err(VaultError::PathEscape(format!(
-            "only .md notes may be written through the vault: {relative}"
+            "only .md and .fountain documents may be written through the vault: {relative}"
         )));
     }
     let path = safe_join(root, relative)?;
@@ -239,10 +280,26 @@ mod tests {
     }
 
     #[test]
-    fn write_rejects_escape_and_non_markdown() {
+    fn write_rejects_escape_and_unknown_extensions() {
         let dir = tempfile::tempdir().unwrap();
         create_project(dir.path(), "T").unwrap();
         assert!(write_note(dir.path(), "../evil.md", "x").is_err());
         assert!(write_note(dir.path(), "World/script.exe", "x").is_err());
+    }
+
+    #[test]
+    fn screenplays_are_writable_and_listed_separately_from_notes() {
+        let dir = tempfile::tempdir().unwrap();
+        create_project(dir.path(), "T").unwrap();
+        write_note(dir.path(), "Story/master.fountain", "INT. ROOM - DAY").unwrap();
+        write_note(dir.path(), "World/Characters/Lan.md", "# Lan").unwrap();
+
+        assert_eq!(
+            list_screenplays(dir.path()).unwrap(),
+            vec!["Story/master.fountain".to_string()]
+        );
+        // The notes list stays Markdown-only so the WORLD tree is unchanged.
+        let notes = list_notes(dir.path()).unwrap();
+        assert!(notes.iter().all(|n| n.ends_with(".md")));
     }
 }

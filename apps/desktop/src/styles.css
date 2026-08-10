@@ -1075,6 +1075,151 @@ button.note.active {
   cursor: default;
 }
 
+/* Screenplay */
+
+.view-bar .spacer {
+  flex: 1;
+}
+
+.view-bar select,
+.view-bar button {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+
+.view-bar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.scene-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+}
+
+.scene-number {
+  display: inline-block;
+  font-size: 0.68rem;
+  opacity: 0.6;
+  margin-right: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Screenplay layout follows standard script proportions rather than prose. */
+.screenplay {
+  max-width: 60ch;
+  margin: 0 auto;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  padding-bottom: 3rem;
+}
+
+.title-page {
+  text-align: center;
+  padding: 1rem 0 2rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  margin-bottom: 1.5rem;
+}
+
+.tp-key {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  opacity: 0.5;
+  margin-right: 0.4rem;
+}
+
+.sp {
+  white-space: pre-wrap;
+}
+
+.sp.highlighted {
+  background: color-mix(in srgb, #7896ff 12%, transparent);
+}
+
+.sp-scene_heading {
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 1.4rem 0 0.6rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.sp-action {
+  margin-bottom: 0.85rem;
+}
+
+.sp-character {
+  margin: 0.85rem 0 0;
+  padding-left: 20ch;
+  text-transform: uppercase;
+}
+
+.sp-parenthetical {
+  padding-left: 16ch;
+  opacity: 0.8;
+}
+
+.sp-dialogue {
+  padding-left: 10ch;
+  padding-right: 8ch;
+  margin-bottom: 0.3rem;
+}
+
+.sp-transition {
+  text-align: right;
+  text-transform: uppercase;
+  margin: 0.85rem 0;
+}
+
+.sp-section {
+  font-family: system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.65;
+  margin: 1.8rem 0 0.5rem;
+  font-size: 0.78rem;
+}
+
+.sp-section[data-depth='2'] {
+  padding-left: 1rem;
+  opacity: 0.5;
+}
+
+.sp-synopsis {
+  font-family: system-ui, sans-serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  border-left: 2px solid color-mix(in srgb, currentColor 25%, transparent);
+  padding-left: 0.6rem;
+  margin: 0.4rem 0 0.85rem;
+}
+
+.sp-note {
+  font-family: system-ui, sans-serif;
+  font-size: 0.75rem;
+  background: color-mix(in srgb, #f2b64c 18%, transparent);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  margin: 0.3rem 0;
+  display: inline-block;
+}
+
+.sp-page-break {
+  border: none;
+  border-top: 1px dashed color-mix(in srgb, currentColor 30%, transparent);
+  margin: 2rem 0;
+}
+
 /* Patch review */
 
 .propose-toggle {

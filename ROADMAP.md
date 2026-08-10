@@ -200,20 +200,35 @@ Notes
 
 ## Phase 4 — Story
 
-Status: NOT STARTED
-Owner: unassigned
+Status: IN PROGRESS
+Owner: agent
 
 Acceptance criteria
 
-- [ ] Sequences
-- [ ] Scenes and Scene Capsules
-- [ ] State snapshots
+- [ ] Sequences — parsed from Fountain sections; no durable Sequence object yet
+- [ ] Scenes and Scene Capsules — scenes parse from the screenplay; the
+      Scene Capsule object and its editor are pending
+- [x] State snapshots (delivered in Phase 2)
 - [ ] Beats
 - [ ] Moments
-- [ ] Fountain screenplay editor with raw mode
+- [x] Fountain screenplay editor with raw mode
 - [ ] Branches and comparison
-- [ ] Reveal/knowledge tracking
+- [x] Reveal/knowledge tracking (delivered in Phase 2)
 - [ ] Story diagnostics (warnings, never hard gates)
+
+Notes
+
+- 2026-08-10: first increment. Fountain is parsed rather than imported — the
+  `.fountain` file stays the truth and the formatted view is a projection of
+  it, so raw mode is always one click away as the spec requires. The parser
+  covers title pages, scene headings (including forced and numbered), action,
+  character/dialogue/parenthetical, dual dialogue, transitions, sections,
+  synopses, notes, page breaks, and the boneyard. Boneyard removal preserves
+  line counts so every element's recorded source line still matches the file.
+  30 tests, including the cases that distinguish a character cue from a
+  shouted line of action, and centered text from a transition.
+- The vault now writes `.fountain` as well as `.md`; screenplays are listed
+  separately so the WORLD tree stays Markdown-only.
 
 ---
 

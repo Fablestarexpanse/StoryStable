@@ -70,6 +70,9 @@ export const openProject = (root: string) => call<ProjectInfo>('open_project', {
 
 export const listNotes = (root: string) => call<string[]>('list_notes', { root });
 
+/** Fountain screenplays, listed separately from Markdown notes. */
+export const listScreenplays = (root: string) => call<string[]>('list_screenplays', { root });
+
 export const readNote = (root: string, path: string) => call<string>('read_note', { root, path });
 
 export const writeNote = async (root: string, path: string, contents: string): Promise<void> => {
