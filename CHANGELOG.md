@@ -11,6 +11,14 @@ and agent definition versions.
 
 ### Added
 
+- Phase 2 (first increment): browser-safe schema validation
+  (`@storystable/schemas/browser`) backed by static schema imports, with a
+  drift test that fails if the static list or its content diverges from the
+  `schemas/` directory; 11 entity templates that are schema-valid by
+  construction, with stable type-prefixed IDs independent of filenames;
+  comment- and order-preserving frontmatter updates; property table view with
+  inline cell editing that writes back to note files, filtering, sorting,
+  grouping, column selection, CSV export, and a per-row schema-validity badge.
 - Phase 1 (fourth increment, completes Phase 1): JSON Canvas support —
   never-throwing parser that skips malformed nodes/edges, rejects duplicate
   ids and dangling edges, and preserves unknown/namespaced keys on nodes,

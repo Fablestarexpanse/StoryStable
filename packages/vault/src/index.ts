@@ -1,5 +1,14 @@
-export { parseFrontmatter, serializeNote } from './frontmatter.js';
+export { parseFrontmatter, serializeNote, setFrontmatterValue } from './frontmatter.js';
 export type { FrontmatterResult } from './frontmatter.js';
+export { ENTITY_TEMPLATES, templateFor, createEntity, entityId, slugify } from './entities.js';
+export type { EntityTemplate, EntityType, NewEntity } from './entities.js';
+export { collectColumns, buildRows, groupRows, formatValue, rowsToCsv } from './properties.js';
+export type {
+  PropertyColumn,
+  PropertyRow,
+  PropertyGroup,
+  PropertyViewOptions,
+} from './properties.js';
 export { extractWikilinks } from './wikilinks.js';
 export type { Wikilink } from './wikilinks.js';
 export { parseNote, buildLinkIndex } from './links.js';

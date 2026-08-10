@@ -6,6 +6,7 @@
   "type": "module",
   "main": "./src/index.ts",
   "dependencies": {
+    "@storystable/schemas": "*",
     "yaml": "^2.8.2"
   }
 }

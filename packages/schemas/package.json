@@ -5,6 +5,10 @@
   "description": "JSON Schema 2020-12 contracts for the StoryStable production object model",
   "type": "module",
   "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser.ts"
+  },
   "scripts": {
     "validate": "tsx src/validate-cli.ts"
   },

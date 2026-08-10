@@ -584,6 +584,161 @@ button.note.active {
   margin: 0.15rem 0;
 }
 
+/* Property views */
+
+.properties {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 0.5rem;
+}
+
+.prop-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+
+.prop-toolbar .spacer {
+  flex: 1;
+}
+
+.prop-toolbar input,
+.prop-toolbar select,
+.prop-toolbar button {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+}
+
+.prop-toolbar button {
+  cursor: pointer;
+}
+
+.prop-toolbar button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+label.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 0.8rem;
+  font-size: 0.8rem;
+}
+
+.columns-picker summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.columns-picker > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.4rem;
+  padding: 0.4rem 0;
+}
+
+.count-muted {
+  opacity: 0.45;
+}
+
+.prop-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 6px;
+}
+
+.prop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.prop-table th {
+  position: sticky;
+  top: 0;
+  background: Canvas;
+  text-align: left;
+  padding: 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.prop-table .col-head {
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+.prop-table .filter-row th {
+  top: 27px;
+  padding: 0.2rem 0.4rem 0.35rem;
+}
+
+.prop-table .filter-row input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  background: transparent;
+  color: inherit;
+}
+
+.prop-table td {
+  padding: 0.3rem 0.6rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  vertical-align: top;
+  max-width: 260px;
+}
+
+.prop-table td input {
+  width: 100%;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  border: 1px solid #7896ff;
+  background: transparent;
+  color: inherit;
+}
+
+.prop-table .cell {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prop-table .group-head td {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
 .canvas-editor {
   font: inherit;
   font-size: 0.85rem;

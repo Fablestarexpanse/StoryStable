@@ -55,3 +55,22 @@ export function serializeNote(frontmatter: Record<string, unknown>, body: string
   const yamlText = stringify(frontmatter);
   return `---\n${yamlText}---\n${body}`;
 }
+
+/**
+ * Set a single frontmatter property in note source, preserving the body,
+ * key order, and any YAML comments. Setting `undefined` removes the key.
+ * A note without frontmatter gains a block; the body is never touched.
+ */
+export function setFrontmatterValue(source: string, key: string, value: unknown): string {
+  const parsed = parseFrontmatter(source);
+  if (parsed.raw === null) {
+    if (value === undefined) return source;
+    return serializeNote({ [key]: value }, source);
+  }
+  const doc = parseDocument(parsed.raw.replace(/\r\n/g, '\n'));
+  if (value === undefined) doc.delete(key);
+  else doc.set(key, value);
+  const yamlText = doc.toString();
+  const normalized = yamlText.endsWith('\n') ? yamlText : `${yamlText}\n`;
+  return `---\n${normalized}---\n${parsed.body}`;
+}

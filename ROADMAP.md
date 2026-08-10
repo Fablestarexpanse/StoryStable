@@ -99,19 +99,30 @@ Notes
 
 ## Phase 2 — Structured World
 
-Status: NOT STARTED
-Owner: unassigned
+Status: IN PROGRESS
+Owner: agent
 
 Acceptance criteria
 
-- [ ] WorldEntity schemas enforced end to end
-- [ ] Entity templates
-- [ ] Property views (table/list/card) writing back to frontmatter
+- [x] WorldEntity schemas enforced end to end (browser validator, per-row
+      schema badge in the property table)
+- [x] Entity templates (11 built-in types, schema-valid by construction)
+- [x] Property views writing back to frontmatter (table with filter/sort/
+      group/columns/CSV; card view pending)
 - [ ] Typed, directional relationships
 - [ ] World timeline and events
 - [ ] Canon status and conflict indicators
-- [ ] Reference attachments
+- [x] Reference attachments (delivered in Phase 1)
 - [ ] Truth / character knowledge / audience knowledge model
+
+Notes
+
+- 2026-08-09: first increment. Schemas are now browser-usable via a static
+  `definitions` map and a `@storystable/schemas/browser` entry, with a drift
+  test asserting the static list and its content never diverge from the
+  `schemas/` directory. Frontmatter edits go through a yaml Document so key
+  order and comments survive. Property table supports inline editing,
+  filtering, sorting, grouping, column selection, and CSV export.
 
 ---
 

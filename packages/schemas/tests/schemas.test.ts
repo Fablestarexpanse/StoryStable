@@ -5,6 +5,8 @@ import {
   loadFixtures,
   assertSchemaMetadata,
 } from '../src/registry.js';
+import { SCHEMA_FILES } from '../src/definitions.js';
+import { SchemaValidator } from '../src/validator.js';
 
 const registry = new SchemaRegistry();
 
@@ -49,6 +51,46 @@ describe('invalid fixtures', () => {
       expect(valid).toBe(false);
     });
   }
+});
+
+describe('browser definitions', () => {
+  it('static schema list matches the schemas directory exactly', () => {
+    const onDisk = loadSchemaFiles()
+      .map((e) => e.file)
+      .sort();
+    expect(Object.keys(SCHEMA_FILES).sort()).toEqual(onDisk);
+  });
+
+  it('statically imported content matches the files on disk', () => {
+    for (const entry of loadSchemaFiles()) {
+      expect(SCHEMA_FILES[entry.file], `${entry.file} content drift`).toEqual(entry.schema);
+    }
+  });
+
+  it('browser validator agrees with the fs-backed registry', () => {
+    const validator = new SchemaValidator();
+    for (const fixture of loadFixtures('valid')) {
+      expect(validator.validate(fixture.schemaId, fixture.data), fixture.file).toEqual([]);
+    }
+    for (const fixture of loadFixtures('invalid')) {
+      expect(
+        validator.validate(fixture.schemaId, fixture.data).length,
+        fixture.file,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it('reports the failing property path', () => {
+    const issues = new SchemaValidator().validate('urn:storystable:world-entity', {
+      schema_version: 1,
+      id: 'char_x',
+      type: 'world_entity',
+      entity_type: 'not_a_real_type',
+      title: 'X',
+      status: 'canon',
+    });
+    expect(issues.some((i) => i.path === '/entity_type')).toBe(true);
+  });
 });
 
 describe('contract-critical rules', () => {

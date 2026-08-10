@@ -9,6 +9,7 @@ import {
 import { GraphView } from './GraphView.js';
 import { HealthView } from './HealthView.js';
 import { CanvasView } from './CanvasView.js';
+import { PropertiesView } from './PropertiesView.js';
 import type { Attachment, ProjectInfo, SearchHit } from '../services/vault.js';
 import {
   createProject,
@@ -49,7 +50,7 @@ export function WorldWorkspace() {
   const [draft, setDraft] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const [view, setView] = useState<'notes' | 'graph' | 'canvas' | 'health'>('notes');
+  const [view, setView] = useState<'notes' | 'table' | 'graph' | 'canvas' | 'health'>('notes');
 
   const refreshNotes = useCallback(async (project: ProjectInfo) => {
     const notePaths = await listNotes(project.root);
@@ -226,7 +227,7 @@ export function WorldWorkspace() {
       <aside className="navigator">
         <div className="project-name">{vault.project.name}</div>
         <div className="view-switch">
-          {(['notes', 'graph', 'canvas', 'health'] as const).map((v) => (
+          {(['notes', 'table', 'graph', 'canvas', 'health'] as const).map((v) => (
             <button
               key={v}
               className={view === v ? 'view active' : 'view'}
@@ -283,7 +284,20 @@ export function WorldWorkspace() {
         )}
       </aside>
       <section className="editor">
-        {view === 'graph' && graph ? (
+        {view === 'table' ? (
+          <PropertiesView
+            notes={vault.notes}
+            onOpen={selectNote}
+            onSaveNote={async (path, source) => {
+              await writeNote(vault.project.root, path, source);
+              await refreshNotes(vault.project);
+            }}
+            onCreateNote={async (path, source) => {
+              await writeNote(vault.project.root, path, source);
+              await refreshNotes(vault.project);
+            }}
+          />
+        ) : view === 'graph' && graph ? (
           <GraphView graph={graph} onOpen={selectNote} />
         ) : view === 'canvas' ? (
           <CanvasView
