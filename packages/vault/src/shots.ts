@@ -203,6 +203,61 @@ export function parseShot(note: ParsedNote): Shot | null {
 }
 
 /**
+ * Build a new Shot note. `now` is injected so callers stay deterministic.
+ *
+ * The body is the shot's description in `{{ref:id}}` placeholder form — the
+ * one piece of the H3 prompt a person or a model actually writes. It lives in
+ * the note body rather than in frontmatter because it is prose, and because
+ * keeping it out of the compiled prompt is what makes the prompt derived.
+ */
+export function createShot(
+  sceneId: string,
+  order: number,
+  now: string,
+  targetSeconds = 6,
+): { path: string; source: string } {
+  const slug = String(order).padStart(3, '0');
+  const frontmatter = [
+    '---',
+    'schema_version: 1',
+    `id: shot_${slug}`,
+    'type: shot',
+    `scene_id: ${sceneId}`,
+    `order: ${String(order)}`,
+    'status: planned',
+    'purpose: ""',
+    `created_at: ${now}`,
+    'duration:',
+    `  target_seconds: ${String(targetSeconds)}`,
+    '  rate: { numerator: 24, denominator: 1 }',
+    'composition:',
+    '  shot_size: medium',
+    '  angle: eye_level',
+    'camera:',
+    '  movement: static',
+    '  amplitude: none',
+    '  speed: medium',
+    '  notes: ""',
+    'sound:',
+    '  ambience: []',
+    '  sfx: []',
+    '  music: { mode: none }',
+    'keyframes:',
+    '  first_frame_asset_id: null',
+    '  last_frame_asset_id: null',
+    'reference_set_id: null',
+    'renderer:',
+    '  preferred: minimax_h3',
+    '  mode_hint: auto',
+    '---',
+    '',
+    '[Shot 1] ',
+    '',
+  ].join('\n');
+  return { path: `Studio/Shots/${slug}.md`, source: frontmatter };
+}
+
+/**
  * H3's motion vocabulary, keyed by the Shot's renderer-neutral movement.
  *
  * `directional` marks the movements H3 expresses as a left/right or up/down

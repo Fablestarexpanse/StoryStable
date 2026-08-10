@@ -17,6 +17,15 @@ and agent definition versions.
   spellings, a "missing" marker when a folder has moved, and per-entry
   removal. A corrupt or unreadable recents file degrades to an empty list
   rather than blocking project opening.
+- Phase 5 (second increment): STUDIO workspace. Shots are listed from the
+  vault, their description prose is edited in the note body, and the H3 prompt
+  compiles live beside it. The prompt panel is deliberately read-only —
+  editing it would create a second source of truth that the next recompile
+  would silently discard. The inspector shows the routed mode, the frame-exact
+  duration, the reference label assignment, the shot's gaps, and the
+  compiler's warnings. Saving rewrites only the note body, reusing the
+  original frontmatter bytes so a STUDIO edit cannot reformat fields it does
+  not understand.
 - Phase 5 (first increment): Shot parsing and the Shot-to-H3 bridge. Shot notes
   are read leniently — a half-written shot is a normal state of work, so
   nothing is rejected for being incomplete and unrecognised enum values are

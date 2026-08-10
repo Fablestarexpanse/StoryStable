@@ -252,8 +252,9 @@ Acceptance criteria
 - [ ] Reference sets with role/authority/use-scope
 - [ ] Visual exploration canvas
 - [ ] Storyboard with frame-exact panel timing
-- [x] Shot objects — parsed from notes and bridged to the H3 compiler; no
-      Shot editor UI yet
+- [x] Shot objects — parsed from notes, bridged to the H3 compiler, and
+      listed and edited in the STUDIO workspace; frontmatter fields are still
+      edited as note properties rather than through a dedicated shot form
 - [ ] ComfyUI backend connection
 - [ ] Versioned workflow adapters with incompatibility detection
 - [ ] Image generation ingest and lineage
@@ -271,7 +272,13 @@ Notes
   direction, but H3 needs Pan Left or Pan Right. The bridge reports that as a
   gap instead of picking one. Same for a reference set the caller has not
   resolved: the shot names it, the adapter cannot read the vault, so it says
-  so rather than compiling as though the set were empty. 30 tests.
+  so rather than compiling as though the set were empty. 34 tests.
+- 2026-08-10: second increment. STUDIO workspace. The compiled prompt is shown
+  read-only on purpose: it is a view of the shot, and making it editable would
+  create a second source of truth that the next recompile would discard
+  without telling anyone. Saving rewrites only the note body and reuses the
+  original frontmatter bytes, so editing a description here cannot reformat or
+  drop frontmatter fields this workspace does not model.
 
 ---
 

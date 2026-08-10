@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { parseNote } from '../src/links.js';
 import { compileH3 } from '../src/h3.js';
-import { cameraPhrase, fps, parseShot, shotToH3Input, type Shot } from '../src/shots.js';
+import { parseFrontmatter } from '../src/frontmatter.js';
+import {
+  cameraPhrase,
+  createShot,
+  fps,
+  parseShot,
+  shotToH3Input,
+  type Shot,
+} from '../src/shots.js';
 
 const shotNote = (frontmatter: string) =>
   parseNote({ path: 'Studio/Shots/010.md', source: `---\n${frontmatter}\n---\n` });
@@ -111,6 +119,34 @@ describe('parseShot', () => {
 
   it('treats an auto mode hint as no hint', () => {
     expect(parsed(['type: shot', 'renderer:', '  mode_hint: auto'].join('\n')).modeHint).toBeNull();
+  });
+});
+
+describe('createShot', () => {
+  it('produces frontmatter that parses cleanly and reparses as a shot', () => {
+    const created = createShot('scene_14', 10, '2026-08-10T00:00:00Z');
+    expect(parseFrontmatter(created.source).errors).toEqual([]);
+    const shot = parseShot(parseNote({ path: created.path, source: created.source }));
+    expect(shot?.sceneId).toBe('scene_14');
+    expect(shot?.order).toBe(10);
+    expect(shot?.duration.targetSeconds).toBe(6);
+    expect(fps(shot?.duration.rate ?? { numerator: 1, denominator: 1 })).toBe(24);
+  });
+
+  it('lands in Studio/Shots with a zero-padded name', () => {
+    expect(createShot('scene_14', 7, 'now').path).toBe('Studio/Shots/007.md');
+  });
+
+  it('starts the body with the first shot marker so the compiler has something to check', () => {
+    const created = createShot('scene_14', 1, 'now');
+    expect(parseNote({ path: created.path, source: created.source }).body).toContain('[Shot 1]');
+  });
+
+  it('defaults the mode hint to auto so routing stays derived', () => {
+    const created = createShot('scene_14', 1, 'now');
+    expect(
+      parseShot(parseNote({ path: created.path, source: created.source }))?.modeHint,
+    ).toBeNull();
   });
 });
 

@@ -36,7 +36,7 @@ export {
 export type { Screenplay, ScreenplayElement, ElementKind, SceneSummary } from './fountain.js';
 export { linkScenes, sceneCapsules, storyDiagnostics, createSceneCapsule } from './scenes.js';
 export type { SceneLink, StoryDiagnostic } from './scenes.js';
-export { parseShot, isShotNote, cameraPhrase, shotToH3Input, fps } from './shots.js';
+export { parseShot, isShotNote, createShot, cameraPhrase, shotToH3Input, fps } from './shots.js';
 export type {
   Shot,
   ShotStatus,

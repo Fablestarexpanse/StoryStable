@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { WorldWorkspace } from './world/WorldWorkspace.js';
 import { StoryWorkspace } from './story/StoryWorkspace.js';
+import { StudioWorkspace } from './studio/StudioWorkspace.js';
 
 const WORKSPACES = ['WORLD', 'STORY', 'STUDIO', 'CUT'] as const;
 type Workspace = (typeof WORKSPACES)[number];
@@ -38,6 +39,8 @@ export function App() {
           <WorldWorkspace />
         ) : active === 'STORY' ? (
           <StoryWorkspace />
+        ) : active === 'STUDIO' ? (
+          <StudioWorkspace />
         ) : (
           <div className="placeholder">
             <h1>{active}</h1>
