@@ -1,9 +1,32 @@
-/**
+﻿/**
  * Frontend boundary to the Rust vault services. UI components call these
  * functions — never `invoke` directly (docs/architecture/boundaries.md).
  */
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+
+/**
+ * Whether the app is running inside the Tauri webview, where the Rust
+ * commands exist. In a plain browser (the Vite dev server opened directly)
+ * there is no IPC bridge, and calling `invoke` throws an opaque
+ * "Cannot read properties of undefined (reading 'invoke')".
+ */
+export function isDesktop(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
+export const BROWSER_ONLY_MESSAGE =
+  'This page is the browser preview, which has no connection to the vault. ' +
+  'Run the desktop app (npm run dev) to open projects, edit notes, or use agents.';
+
+/**
+ * Every command goes through here so a browser context fails with an
+ * explanation instead of a TypeError from deep inside the Tauri client.
+ */
+async function call<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+  if (!isDesktop()) throw new Error(BROWSER_ONLY_MESSAGE);
+  return invoke<T>(command, args);
+}
 
 export interface ProjectInfo {
   root: string;
@@ -41,34 +64,34 @@ export interface RecentProject {
 }
 
 export const createProject = (root: string, name: string) =>
-  invoke<ProjectInfo>('create_project', { root, name });
+  call<ProjectInfo>('create_project', { root, name });
 
-export const openProject = (root: string) => invoke<ProjectInfo>('open_project', { root });
+export const openProject = (root: string) => call<ProjectInfo>('open_project', { root });
 
-export const listNotes = (root: string) => invoke<string[]>('list_notes', { root });
+export const listNotes = (root: string) => call<string[]>('list_notes', { root });
 
-export const readNote = (root: string, path: string) => invoke<string>('read_note', { root, path });
+export const readNote = (root: string, path: string) => call<string>('read_note', { root, path });
 
 export const writeNote = async (root: string, path: string, contents: string): Promise<void> => {
-  await invoke('write_note', { root, path, contents });
+  await call('write_note', { root, path, contents });
 };
 
 export const createFolder = async (root: string, path: string): Promise<void> => {
-  await invoke('create_folder', { root, path });
+  await call('create_folder', { root, path });
 };
 
-export const openrouterModels = () => invoke<ModelCapabilities[]>('openrouter_models');
+export const openrouterModels = () => call<ModelCapabilities[]>('openrouter_models');
 
-export const rebuildIndex = (root: string) => invoke<IndexStats>('rebuild_index', { root });
+export const rebuildIndex = (root: string) => call<IndexStats>('rebuild_index', { root });
 
 export const searchNotes = (root: string, query: string) =>
-  invoke<SearchHit[]>('search_notes', { root, query });
+  call<SearchHit[]>('search_notes', { root, query });
 
 export const watchProject = async (root: string): Promise<void> => {
-  await invoke('watch_project', { root });
+  await call('watch_project', { root });
 };
 
-export const indexHealth = (root: string) => invoke<IndexHealth>('index_health', { root });
+export const indexHealth = (root: string) => call<IndexHealth>('index_health', { root });
 
 // --- agents ---------------------------------------------------------------
 
@@ -114,18 +137,18 @@ export interface CompletionResponse {
 }
 
 export const setProviderKey = (provider: string, key: string) =>
-  invoke<CredentialStatus>('set_provider_key', { provider, key });
+  call<CredentialStatus>('set_provider_key', { provider, key });
 
 export const providerStatus = (provider: string) =>
-  invoke<CredentialStatus>('provider_status', { provider });
+  call<CredentialStatus>('provider_status', { provider });
 
 export const clearProviderKey = (provider: string) =>
-  invoke<CredentialStatus>('clear_provider_key', { provider });
+  call<CredentialStatus>('clear_provider_key', { provider });
 
-export const modelRegistry = () => invoke<ModelCapabilities[]>('model_registry');
+export const modelRegistry = () => call<ModelCapabilities[]>('model_registry');
 
 export const previewRoute = (model: string, policy: RoutingPolicy) =>
-  invoke<RouteDecision>('preview_route', { model, policy });
+  call<RouteDecision>('preview_route', { model, policy });
 
 export const agentComplete = (
   request: {
@@ -136,28 +159,32 @@ export const agentComplete = (
     effort?: string;
   },
   policy: RoutingPolicy,
-) => invoke<CompletionResponse>('agent_complete', { request, policy });
+) => call<CompletionResponse>('agent_complete', { request, policy });
 
-export const recentProjects = () => invoke<RecentProject[]>('recent_projects');
+export const recentProjects = () => call<RecentProject[]>('recent_projects');
 
 export const rememberProject = (root: string, name: string) =>
-  invoke<RecentProject[]>('remember_project', { root, name });
+  call<RecentProject[]>('remember_project', { root, name });
 
-export const forgetProject = (root: string) => invoke<RecentProject[]>('forget_project', { root });
+export const forgetProject = (root: string) => call<RecentProject[]>('forget_project', { root });
 
-export const listAttachments = (root: string) => invoke<Attachment[]>('list_attachments', { root });
+export const listAttachments = (root: string) => call<Attachment[]>('list_attachments', { root });
 
-export const listCanvases = (root: string) => invoke<string[]>('list_canvases', { root });
+export const listCanvases = (root: string) => call<string[]>('list_canvases', { root });
 
 export const readCanvas = (root: string, path: string) =>
-  invoke<string>('read_canvas', { root, path });
+  call<string>('read_canvas', { root, path });
 
 export const writeCanvas = async (root: string, path: string, contents: string): Promise<void> => {
-  await invoke('write_canvas', { root, path, contents });
+  await call('write_canvas', { root, path, contents });
 };
 
 /** Subscribe to watcher notifications; payload is the changed note paths. */
-export const onVaultChanged = (handler: (paths: string[]) => void): Promise<UnlistenFn> =>
-  listen<string[]>('vault-changed', (event) => {
+export const onVaultChanged = async (handler: (paths: string[]) => void): Promise<UnlistenFn> => {
+  // No watcher exists outside the desktop app; hand back a no-op unsubscribe
+  // so callers can clean up unconditionally.
+  if (!isDesktop()) return () => undefined;
+  return listen<string[]>('vault-changed', (event) => {
     handler(event.payload);
   });
+};

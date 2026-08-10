@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace apps/desktop",
+    "dev:web": "npm run dev:web --workspace apps/desktop",
     "build": "npm run build --workspace apps/desktop",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

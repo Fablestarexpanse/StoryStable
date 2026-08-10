@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.fablestarexpanse.storystable",
   "build": {
-    "beforeDevCommand": "npx vite",
+    "beforeDevCommand": "node ../../../scripts/dev-web.mjs",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "vite build",
     "frontendDist": "../dist"

@@ -88,6 +88,16 @@ body {
   padding: 2rem;
 }
 
+.browser-warning {
+  width: min(560px, 92%);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, #f2b64c 20%, transparent);
+  border: 1px solid color-mix(in srgb, #f2b64c 45%, transparent);
+}
+
 .recents {
   width: min(560px, 92%);
 }

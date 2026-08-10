@@ -31,6 +31,8 @@ import {
   rememberProject,
   forgetProject,
   createFolder,
+  isDesktop,
+  BROWSER_ONLY_MESSAGE,
 } from '../services/vault.js';
 import { MarkdownEditor } from './MarkdownEditor.js';
 
@@ -203,6 +205,7 @@ export function WorldWorkspace() {
     return (
       <div className="vault-setup">
         <h1>Open a project vault</h1>
+        {!isDesktop() && <p className="browser-warning">{BROWSER_ONLY_MESSAGE}</p>}
 
         {recents.length > 0 && (
           <div className="recents">

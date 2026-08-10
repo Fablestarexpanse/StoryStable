@@ -30,5 +30,12 @@ export default tseslint.config(
     files: ['**/*.js', '**/*.mjs', '**/*.config.ts', '**/vite.config.ts', '**/vitest.config.ts'],
     extends: [tseslint.configs.disableTypeChecked],
   },
+  {
+    // Build/dev scripts run in Node, not the browser.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { process: 'readonly', console: 'readonly' },
+    },
+  },
   prettier,
 );
