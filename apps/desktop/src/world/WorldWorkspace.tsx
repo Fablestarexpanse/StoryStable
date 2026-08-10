@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { parseNote, buildLinkIndex, type ParsedNote } from '@storystable/vault';
+import {
+  parseNote,
+  buildLinkIndex,
+  buildGraph,
+  computeHealth,
+  type ParsedNote,
+} from '@storystable/vault';
+import { GraphView } from './GraphView.js';
+import { HealthView } from './HealthView.js';
 import type { ProjectInfo, SearchHit } from '../services/vault.js';
 import {
   createProject,
@@ -32,6 +40,7 @@ export function WorldWorkspace() {
   const [draft, setDraft] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [view, setView] = useState<'notes' | 'graph' | 'health'>('notes');
 
   const refreshNotes = useCallback(async (project: ProjectInfo) => {
     const notePaths = await listNotes(project.root);
@@ -109,6 +118,14 @@ export function WorldWorkspace() {
   }, [query, vault]);
 
   const linkIndex = useMemo(() => (vault ? buildLinkIndex(vault.notes) : null), [vault]);
+  const graph = useMemo(
+    () => (vault && linkIndex ? buildGraph(vault.notes, linkIndex) : null),
+    [vault, linkIndex],
+  );
+  const health = useMemo(
+    () => (vault && linkIndex ? computeHealth(vault.notes, linkIndex) : []),
+    [vault, linkIndex],
+  );
   const selectedNote = vault?.notes.find((n) => n.path === selected) ?? null;
   const backlinks = selected && linkIndex ? (linkIndex.backlinks.get(selected) ?? []) : [];
 
@@ -118,6 +135,7 @@ export function WorldWorkspace() {
     setDirty(false);
     setSavedAt(null);
     setError(null);
+    setView('notes');
   }, []);
 
   const save = useCallback(() => {
@@ -184,10 +202,26 @@ export function WorldWorkspace() {
     );
   }
 
+  const healthCount = health.filter((f) => f.severity !== 'advisory').length;
+
   return (
     <div className="vault">
       <aside className="navigator">
         <div className="project-name">{vault.project.name}</div>
+        <div className="view-switch">
+          {(['notes', 'graph', 'health'] as const).map((v) => (
+            <button
+              key={v}
+              className={view === v ? 'view active' : 'view'}
+              onClick={() => {
+                setView(v);
+              }}
+            >
+              {v}
+              {v === 'health' && healthCount > 0 && <em className="count">{healthCount}</em>}
+            </button>
+          ))}
+        </div>
         <input
           className="search"
           value={query}
@@ -232,7 +266,11 @@ export function WorldWorkspace() {
         )}
       </aside>
       <section className="editor">
-        {selectedNote ? (
+        {view === 'graph' && graph ? (
+          <GraphView graph={graph} onOpen={selectNote} />
+        ) : view === 'health' ? (
+          <HealthView root={vault.project.root} findings={health} onOpen={selectNote} />
+        ) : selectedNote ? (
           <>
             <div className="editor-head">
               <h2>{selectedNote.title}</h2>

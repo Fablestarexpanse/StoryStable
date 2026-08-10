@@ -305,6 +305,147 @@ button.note.active {
   line-height: 1.6;
 }
 
+.view-switch {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 0.6rem;
+}
+
+.view-switch .view {
+  flex: 1;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.78rem;
+  text-transform: capitalize;
+  padding: 0.3rem 0;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: 0.65;
+}
+
+.view-switch .view.active {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  font-weight: 600;
+}
+
+.view-switch .count {
+  font-style: normal;
+  margin-left: 0.3rem;
+  padding: 0 0.35rem;
+  border-radius: 8px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 0.7rem;
+}
+
+.graph-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0.5rem;
+}
+
+.graph {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 6px;
+}
+
+.graph .edge {
+  stroke: color-mix(in srgb, currentColor 30%, transparent);
+  stroke-width: 1;
+}
+
+.graph .edge.dim {
+  stroke: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.graph .node {
+  cursor: pointer;
+}
+
+.graph .node.dim {
+  opacity: 0.2;
+}
+
+.graph .node text {
+  fill: currentColor;
+  font-size: 11px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.graph-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.3rem;
+}
+
+.health-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.badge.error {
+  background: color-mix(in srgb, #e5484d 25%, transparent);
+}
+
+.badge.warning {
+  background: color-mix(in srgb, #f2b64c 25%, transparent);
+}
+
+.badge.advisory {
+  background: color-mix(in srgb, #7896ff 20%, transparent);
+}
+
+.badge.ok {
+  background: color-mix(in srgb, #4cc38a 25%, transparent);
+}
+
+.health-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.health-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+  padding: 0.3rem 0.6rem;
+}
+
+.health-table td {
+  padding: 0.35rem 0.6rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  vertical-align: top;
+}
+
 .hint {
   opacity: 0.55;
   font-size: 0.9rem;

@@ -11,6 +11,13 @@ and agent definition versions.
 
 ### Added
 
+- Phase 1 (third increment): knowledge graph — `buildGraph` domain function
+  (typed nodes from `entity_type`/folder, deduplicated edges, degree, orphan
+  detection) and a force-directed SVG view with hover neighborhood focus and
+  click-to-open; Project Health — `computeHealth` domain function
+  (frontmatter errors, broken links, orphans, duplicate stable IDs, sorted
+  by severity) rendered with index integrity from the Rust side; WORLD view
+  switcher (notes / graph / health) with a problem-count badge.
 - Phase 1 (second increment): SQLite FTS5 index (`.project/index.sqlite`) —
   versioned schema, full rebuild from files, incremental upsert/remove,
   bm25-ranked search with snippets and operator-injection-safe queries;

@@ -1,0 +1,83 @@
+import type { LinkIndex, ParsedNote } from './links.js';
+
+export type HealthSeverity = 'error' | 'warning' | 'advisory';
+
+export interface HealthFinding {
+  severity: HealthSeverity;
+  category: string;
+  /** Note path the finding is about, when applicable. */
+  path: string | null;
+  message: string;
+}
+
+/**
+ * Project health findings derivable from the vault alone (spec §9.3 subset).
+ * Index-level checks (SQLite integrity, note counts) come from the Rust
+ * side and are merged by the caller.
+ */
+export function computeHealth(notes: ParsedNote[], linkIndex: LinkIndex): HealthFinding[] {
+  const findings: HealthFinding[] = [];
+
+  for (const note of notes) {
+    for (const error of note.frontmatterErrors) {
+      findings.push({
+        severity: 'error',
+        category: 'frontmatter',
+        path: note.path,
+        message: error,
+      });
+    }
+  }
+
+  for (const { from, link } of linkIndex.unresolved) {
+    // Heading-only links ([[#Section]]) are intra-note references, not broken.
+    if (link.target === '') continue;
+    findings.push({
+      severity: 'warning',
+      category: 'broken-link',
+      path: from,
+      message: `unresolved link [[${link.target}]]`,
+    });
+  }
+
+  const linked = new Set<string>();
+  for (const { from, to } of linkIndex.resolved) {
+    linked.add(from);
+    linked.add(to);
+  }
+  for (const note of notes) {
+    if (!linked.has(note.path) && note.path !== 'README.md') {
+      findings.push({
+        severity: 'advisory',
+        category: 'orphan',
+        path: note.path,
+        message: 'note has no inbound or outbound links',
+      });
+    }
+  }
+
+  // Duplicate stable IDs across frontmatter (spec: IDs must be unique).
+  const byId = new Map<string, string[]>();
+  for (const note of notes) {
+    const id = note.frontmatter.id;
+    if (typeof id !== 'string' || id.length === 0) continue;
+    const paths = byId.get(id);
+    if (paths) paths.push(note.path);
+    else byId.set(id, [note.path]);
+  }
+  for (const [id, paths] of byId) {
+    if (paths.length > 1) {
+      findings.push({
+        severity: 'error',
+        category: 'duplicate-id',
+        path: null,
+        message: `id "${id}" used by ${paths.join(', ')}`,
+      });
+    }
+  }
+
+  const order: Record<HealthSeverity, number> = { error: 0, warning: 1, advisory: 2 };
+  return findings.sort(
+    (a, b) => order[a.severity] - order[b.severity] || (a.path ?? '').localeCompare(b.path ?? ''),
+  );
+}

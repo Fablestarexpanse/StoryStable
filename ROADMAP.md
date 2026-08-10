@@ -61,10 +61,11 @@ Acceptance criteria
 - [x] Full-text search (SQLite FTS5, bm25 ranking, snippets, injection-safe)
 - [x] File watcher with incremental indexing (`vault-changed` events)
 - [x] SQLite index build and rebuild-from-files (versioned via user_version)
-- [ ] Basic knowledge graph
+- [x] Basic knowledge graph (typed nodes, degree sizing, hover focus, orphans)
 - [ ] Canvas (JSON Canvas compatible)
 - [ ] Attachments
-- [ ] Project Health panel — `index_health` command exists; panel UI pending
+- [x] Project Health panel (frontmatter errors, broken links, orphans,
+      duplicate IDs, SQLite integrity)
 
 Notes
 
@@ -79,6 +80,11 @@ Notes
   dirty-state save. Index title extraction is deliberately minimal in Rust —
   the TS domain layer stays the owner of rich parsing (see
   docs/data/schemas.md boundary note).
+- 2026-08-09: third increment landed. Knowledge graph (buildGraph domain +
+  force-layout SVG view with kind colors, degree sizing, hover neighborhood
+  focus, click-to-open) and Project Health (computeHealth domain: frontmatter
+  errors / broken links / orphans / duplicate IDs, merged with Rust
+  index_health). Remaining for Phase 1: JSON Canvas and attachments.
 
 ---
 
