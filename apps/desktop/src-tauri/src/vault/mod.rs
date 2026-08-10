@@ -8,6 +8,7 @@
 pub mod assets;
 pub mod atomic;
 pub mod index_db;
+pub mod patch;
 pub mod paths;
 pub mod project;
 pub mod recents;
@@ -25,6 +26,16 @@ pub enum VaultError {
     AlreadyExists(String),
     #[error("invalid project file: {0}")]
     InvalidProject(String),
+    #[error(
+        "\"{path}\" changed since this edit was proposed, so it was not applied. \
+         Regenerate the proposal against the current version. \
+         (expected {expected}, found {actual})"
+    )]
+    StalePatch {
+        path: String,
+        expected: String,
+        actual: String,
+    },
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
     #[error("index error: {0}")]

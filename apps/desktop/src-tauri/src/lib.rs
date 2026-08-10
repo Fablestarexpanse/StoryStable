@@ -65,6 +65,23 @@ fn create_folder(root: String, path: String) -> Result<(), VaultError> {
     project::create_folder(&PathBuf::from(root), &path)
 }
 
+/// Hash a note so a proposal can record what it was based on.
+#[tauri::command]
+fn note_hash(root: String, path: String) -> Result<String, VaultError> {
+    vault::patch::note_hash(&PathBuf::from(root), &path)
+}
+
+/// Apply an agent proposal, refusing if the note changed since it was made.
+#[tauri::command]
+fn apply_patch(
+    root: String,
+    path: String,
+    expected_hash: String,
+    contents: String,
+) -> Result<String, VaultError> {
+    vault::patch::apply_patch(&PathBuf::from(root), &path, &expected_hash, &contents)
+}
+
 #[tauri::command]
 fn rebuild_index(root: String) -> Result<IndexStats, VaultError> {
     let root = PathBuf::from(root);
@@ -225,7 +242,9 @@ pub fn run() {
             openrouter_models,
             preview_route,
             agent_complete,
-            create_folder
+            create_folder,
+            note_hash,
+            apply_patch
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
