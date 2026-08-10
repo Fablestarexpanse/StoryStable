@@ -11,8 +11,14 @@
  *
  * If something is already serving the port, exit 0 and let Tauri attach to
  * it. Otherwise start Vite in the foreground as before.
+ *
+ * Tauri invokes this indirectly, as `npm run dev:vite` from `apps/desktop`.
+ * The indirection is deliberate: Tauri's working directory for
+ * `beforeDevCommand` has moved between versions, so a path relative to it
+ * silently breaks on upgrade, while npm always runs a script from its own
+ * package directory. Vite is spawned in that directory and needs it to find
+ * its config.
  */
-import { spawn } from 'node:child_process';
 import net from 'node:net';
 
 const PORT = Number(process.env.PORT ?? 1420);
@@ -49,18 +55,28 @@ if (results.some(Boolean)) {
   process.exit(0);
 }
 
-// Invoke the platform binary directly rather than through a shell, so no
-// argument concatenation happens.
-const vite = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['vite'], {
-  stdio: 'inherit',
-});
+/**
+ * Start Vite through its Node API rather than as a child process.
+ *
+ * The obvious `spawn('npx', ['vite'])` does not work here. On Windows that
+ * resolves to `npx.cmd`, and Node 22+ refuses to spawn `.cmd` shims without
+ * `shell: true` — the fix for CVE-2024-27980 — while turning the shell on
+ * would reintroduce exactly the argument-quoting hazard that change closed.
+ * Spawning Vite's bin entry directly is no better: Vite 7 does not expose it
+ * through package `exports`. The Node API is the supported surface, needs no
+ * child process at all, and reads the config from the working directory the
+ * same way the CLI does.
+ */
+const { createServer } = await import('vite');
 
-vite.on('exit', (code, signal) => {
-  process.exit(signal ? 1 : (code ?? 0));
-});
+const server = await createServer();
+await server.listen();
+server.printUrls();
 
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, () => {
-    vite.kill(sig);
+    void server.close().then(() => {
+      process.exit(0);
+    });
   });
 }

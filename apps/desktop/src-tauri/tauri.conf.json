@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.fablestarexpanse.storystable",
   "build": {
-    "beforeDevCommand": "node ../../../scripts/dev-web.mjs",
+    "beforeDevCommand": "npm run dev:vite",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "vite build",
     "frontendDist": "../dist"
